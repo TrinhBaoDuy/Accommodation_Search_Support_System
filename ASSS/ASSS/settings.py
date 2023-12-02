@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import cloudinary_storage
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -38,11 +39,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'ASSSs.apps.AssssConfig',
+    'cloudinary_storage',
+    'cloudinary',
+    'ckeditor',
 ]
-
 
 import pymysql
 pymysql.install_as_MySQLdb()
+
 
 
 MIDDLEWARE = [
@@ -131,3 +135,11 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'dstqvlt8d',
+    'API_KEY': '976584642783731',
+    'API_SECRET': 'g-lu2m89dX-wCBVz_4jHP0yZwAw',
+}
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'

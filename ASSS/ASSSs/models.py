@@ -2,7 +2,6 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
-# Create your models here.
 class Role(models.Model):
     rolename = models.CharField(max_length=100, null=False, unique=True)
 
@@ -14,7 +13,7 @@ class User(AbstractUser):
     phonenumber = models.FloatField(default=0)
     dob = models.DateField(null=True)
     address = models.CharField(max_length=100, null=True)
-    avatar = models.CharField(max_length=1000, null=True)
+    avatar = models.FileField(upload_to='image-house', null=True)
     role = models.ForeignKey(Role, on_delete=models.RESTRICT, related_query_name='users', null=True)
 
     def __str__(self):
@@ -70,7 +69,7 @@ class Post(models.Model):
 
 
 class Image(models.Model):
-    imageURL = models.CharField(max_length=1000, null=False)
+    imageURL = models.FileField(upload_to='image-house')
     house = models.ForeignKey(House, on_delete=models.RESTRICT, related_query_name="images")
 
     def __str__(self):
