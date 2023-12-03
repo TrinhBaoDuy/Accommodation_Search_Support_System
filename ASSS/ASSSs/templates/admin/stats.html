@@ -1,0 +1,12 @@
+{% extends 'admin/base_site.html' %}
+
+{% block content %}
+<h1>THÔNG KÊ HE THONG</h1>
+
+<ul>
+    {% for c in stats %}
+        <li>DIA CHI <strong>{{ c.address }}</strong>: {{ c.count_images }} HINH</li>
+    {% endfor %}
+</ul>
+
+{% endblock %}

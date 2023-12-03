@@ -1,6 +1,25 @@
 from django.contrib import admin
+from django.template.response import TemplateResponse
+
+from . import dao
 from .models import Post,House,Comment,PostingPrice,Discount,Role,Image,Follow,Booking,User
+from django.urls import path
 # Register your models here.
+
+
+class ASSSAdminSite(admin.AdminSite):
+    site_header = 'Quan Ly He Thong'
+
+    def get_urls(self):
+        return [
+                   path('ASSS-stats/', self.stats_view)
+               ] + super().get_urls()
+
+
+    def stats_view(self, request):
+        return TemplateResponse(request, 'admin/stats.html', {
+            'stats': dao.count_image_by_house()
+        })
 
 
 class RoleAdmin(admin.ModelAdmin):
@@ -9,14 +28,16 @@ class RoleAdmin(admin.ModelAdmin):
     list_filter = ['id', 'rolename']
 
 
-admin.site.register(User)
-admin.site.register(Role, RoleAdmin)
-admin.site.register(House)
-admin.site.register(Discount)
-admin.site.register(Post)
-admin.site.register(Comment)
-admin.site.register(PostingPrice)
-admin.site.register(Booking)
-admin.site.register(Follow)
-admin.site.register(Image)
+admin_site = ASSSAdminSite(name='myapp')
+
+admin_site.register(User)
+admin_site.register(Role, RoleAdmin)
+admin_site.register(House)
+admin_site.register(Discount)
+admin_site.register(Post)
+admin_site.register(Comment)
+admin_site.register(PostingPrice)
+admin_site.register(Booking)
+admin_site.register(Follow)
+admin_site.register(Image)
 
