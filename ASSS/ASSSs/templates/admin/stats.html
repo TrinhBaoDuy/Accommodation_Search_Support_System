@@ -9,4 +9,10 @@
     {% endfor %}
 </ul>
 
+<h2>Thong tin cac nha tro</h2>
+<ul>
+    {% for h in houses %}
+        <li>{{h.id}} - {{h.address}} - {{h.price}}</li>
+    {% endfor %}
+</ul>
 {% endblock %}

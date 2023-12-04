@@ -41,8 +41,12 @@ INSTALLED_APPS = [
     'ASSSs.apps.AssssConfig',
     'cloudinary_storage',
     'cloudinary',
+    'debug_toolbar',
     'ckeditor',
+    'rest_framework',
+    'drf_yasg',
 ]
+
 
 import pymysql
 pymysql.install_as_MySQLdb()
@@ -57,6 +61,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 ROOT_URLCONF = 'ASSS.urls'
@@ -143,3 +148,14 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': 'g-lu2m89dX-wCBVz_4jHP0yZwAw',
 }
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+
+DEBUG_TOOLBAR_CONFIG = {
+    'SHOW_TOOLBAR_CALLBACK': lambda request: True,
+    'SHOW_TEMPLATE_CONTEXT': True,
+    'INSERT_BEFORE': 'rest_framework.renderers.JSONRenderer',
+}
+
+INTERNAL_IPS = [
+    '127.0.0.1',
+]

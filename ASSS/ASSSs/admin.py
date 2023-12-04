@@ -18,7 +18,8 @@ class ASSSAdminSite(admin.AdminSite):
 
     def stats_view(self, request):
         return TemplateResponse(request, 'admin/stats.html', {
-            'stats': dao.count_image_by_house()
+            'stats': dao.count_image_by_house(),
+            'houses' : dao.load_houses(),
         })
 
 
