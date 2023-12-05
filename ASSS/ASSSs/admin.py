@@ -15,11 +15,10 @@ class ASSSAdminSite(admin.AdminSite):
                    path('ASSS-stats/', self.stats_view)
                ] + super().get_urls()
 
-
     def stats_view(self, request):
         return TemplateResponse(request, 'admin/stats.html', {
             'stats': dao.count_image_by_house(),
-            'houses' : dao.load_houses(),
+            'houses': dao.load_houses(),
         })
 
 
