@@ -1,4 +1,4 @@
-from ASSSs.models import House , Image, Post, Discount, PostingPrice, User
+from ASSSs.models import House , Image, Post, Discount, PostingPrice, User, Follow, Booking
 from rest_framework import serializers
 
 
@@ -31,6 +31,18 @@ class PostingPriceSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
+        fields = '__all__'
+
+
+class FollowSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Follow
+        fields = '__all__'
+
+
+class BookingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Booking
         fields = '__all__'
 
 

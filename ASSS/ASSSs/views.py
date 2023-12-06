@@ -1,7 +1,7 @@
 from django.http import Http404
 from rest_framework.decorators import action, permission_classes
 from ASSSs import serializers, paginators
-from ASSSs.models import House, Image, Post, Discount, PostingPrice, User
+from ASSSs.models import House, Image, Post, Discount, PostingPrice, User, Follow, Booking
 from rest_framework import viewsets, generics, status, permissions
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -181,5 +181,17 @@ class PostingPriceViewSet(viewsets.ModelViewSet):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = serializers.UserSerializer
+    pagination_class = paginators.ASSSPaginator
+
+
+class FollowViewSet(viewsets.ModelViewSet):
+    queryset = Follow.objects.all()
+    serializer_class = serializers.FollowSerializer
+    pagination_class = paginators.ASSSPaginator
+
+
+class BookingViewSet(viewsets.ModelViewSet):
+    queryset = Booking.objects.all()
+    serializer_class = serializers.BookingSerializer
     pagination_class = paginators.ASSSPaginator
 
