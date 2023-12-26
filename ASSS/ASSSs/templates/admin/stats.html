@@ -15,4 +15,51 @@
         <li>{{h.id}} - {{h.address}} - {{h.price}}</li>
     {% endfor %}
 </ul>
+
+<h2>Thong ke nguoi dung</h2>
+<ul>
+    {% for u in statsUser %}
+        <li>{{u.rolename}} : {{u.count_users}} người</li>
+    {% endfor %}
+</ul>
+<canvas id="myChart"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    let labels = [];
+    let values = [];
+
+    {% for c in statsUser %}
+    values.push({{ c.count_users }})
+    labels.push('{{ c.role_name }}')
+    {% endfor %}
+
+    window.onload = () => {
+        const ctx = document.getElementById('myChart');
+
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: '# So luong',
+            data: values,
+            borderWidth: 1,
+            backgroundColor: [
+              'rgb(255, 99, 132)',
+              'rgb(54, 162, 235)',
+              'rgb(255, 205, 86)'
+            ]
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+</script>
 {% endblock %}

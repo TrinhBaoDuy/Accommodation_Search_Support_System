@@ -19,6 +19,7 @@ class ASSSAdminSite(admin.AdminSite):
         return TemplateResponse(request, 'admin/stats.html', {
             'stats': dao.count_image_by_house(),
             'houses': dao.load_houses(),
+            'statsUser': dao.count_user_by_role(),
         })
 
 
