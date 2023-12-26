@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
+from cloudinary.models import CloudinaryField
 
 
 class BaseModel(models.Model):
@@ -30,7 +31,7 @@ class User(AbstractUser, BaseModel):
     phonenumber = models.FloatField(default=0)
     dob = models.DateField(null=True)
     address = models.CharField(max_length=100, null=True)
-    avatar = models.FileField(upload_to='image-house', null=True)
+    avatar = CloudinaryField('avatar', null=True, folder="ASSS-avatar")
     role = models.ForeignKey(Role, on_delete=models.RESTRICT, related_query_name='users', null=True)
 
     def __str__(self):
@@ -86,7 +87,7 @@ class Post(BaseModel):
 
 
 class Image(BaseModel):
-    imageURL = models.FileField(upload_to='image-house')
+    imageURL = CloudinaryField('imageURL', null=True, folder="ASSS-house")
     house = models.ForeignKey(House, on_delete=models.RESTRICT, related_query_name="images")
 
     def __str__(self):

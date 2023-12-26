@@ -20,6 +20,7 @@ class ASSSAdminSite(admin.AdminSite):
             'stats': dao.count_image_by_house(),
             'houses': dao.load_houses(),
             'statsUser': dao.count_user_by_role(),
+            'users' : dao.load_user(),
         })
 
 

@@ -18,3 +18,13 @@ def count_image_by_house():
 
 def count_user_by_role():
     return Role.objects.exclude(rolename='ADMIN').annotate(count_users=Count('users')).values("rolename", "count_users").order_by('count_users')
+
+
+def load_user(params={}):
+    h = User.objects.all()
+
+    kw = params.get('kw')
+    if kw:
+        h = h.filter(id=kw)
+
+    return h

@@ -2,7 +2,7 @@ from django.http import Http404
 from rest_framework.decorators import action, permission_classes
 from ASSSs import serializers, paginators
 from ASSSs.models import House, Image, Post, Discount, PostingPrice, User, Follow, Booking
-from rest_framework import viewsets, generics, status, permissions
+from rest_framework import viewsets, generics, status, permissions, parsers
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 # Create your views here.
@@ -85,7 +85,7 @@ class HouseViewSet(viewsets.ViewSet, generics.ListAPIView):
                         status=status.HTTP_200_OK)
 
 
-class ImageViewSet(viewsets.ViewSet, generics.ListAPIView):
+class ImageViewSet(viewsets.ModelViewSet, generics.ListAPIView):
     queryset = Image.objects.all()
     serializer_class = serializers.ImageSerializer
     pagination_class = paginators.ASSSPaginator
@@ -98,22 +98,6 @@ class ImageViewSet(viewsets.ViewSet, generics.ListAPIView):
             queries = queries.filter(house__id=q)
 
         return queries
-
-    # def create(self, request):
-    #     serializer = self.serializer_class(data=request.data)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    #
-    # def update(self, request, pk=None):
-    #     image = self.get_object(pk)
-    #     serializer = self.serializer_class(image, data=request.data)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response(serializer.data)
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    #
 
 
 class PostViewSet(viewsets.ViewSet, generics.ListAPIView):
@@ -179,9 +163,10 @@ class PostingPriceViewSet(viewsets.ModelViewSet):
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
+    queryset = User.objects.filter(is_active=True).all()
     serializer_class = serializers.UserSerializer
     pagination_class = paginators.ASSSPaginator
+    parser_classes = [parsers.MultiPartParser]
 
 
 class FollowViewSet(viewsets.ModelViewSet):

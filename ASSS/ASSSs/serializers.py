@@ -1,5 +1,11 @@
-from ASSSs.models import House , Image, Post, Discount, PostingPrice, User, Follow, Booking
+from ASSSs.models import House , Image, Post, Discount, PostingPrice, User, Follow, Booking, Role
 from rest_framework import serializers
+
+
+class RoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Role
+        filter= '__all_'
 
 
 class HouseSerializer(serializers.ModelSerializer):
@@ -31,7 +37,19 @@ class PostingPriceSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = '__all__'
+        fields = ('id', 'username', 'password', 'avatar', 'first_name', 'last_name', 'email', 'phonenumber', 'dob', 'address', 'role' )
+        extra_kwargs = {
+                'password': {
+                    'write_only': True
+                }
+            }
+
+    def create(self, validated_data):
+        data = validated_data.copy()
+        user = User.objects.create(**data)
+        user.set_password(validated_data.get('password'))
+        user.save()
+        return user
 
 
 class FollowSerializer(serializers.ModelSerializer):

@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
-import cloudinary_storage
+import cloudinary
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -39,16 +39,17 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'ASSSs.apps.AssssConfig',
-    'cloudinary_storage',
-    'cloudinary',
     'debug_toolbar',
     'ckeditor',
     'rest_framework',
+    'cloudinary',
+    'cloudinary_storage',
     'drf_yasg',
 ]
 
-
 import pymysql
+
+
 pymysql.install_as_MySQLdb()
 
 
@@ -141,13 +142,10 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': 'dstqvlt8d',
-    'API_KEY': '976584642783731',
-    'API_SECRET': 'g-lu2m89dX-wCBVz_4jHP0yZwAw',
-}
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+cloudinary.config(
+    cloud_name="dstqvlt8d",
+    api_key="976584642783731",
+    api_secret="g-lu2m89dX-wCBVz_4jHP0yZwAw")
 
 
 DEBUG_TOOLBAR_CONFIG = {

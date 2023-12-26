@@ -16,6 +16,13 @@
     {% endfor %}
 </ul>
 
+<h2>Thong tin nguoi dung</h2>
+<ul>
+    {% for u in users %}
+        <li>{{u.id}} - {{u.username}} - <img src="{{u.avatar.url}}"></li>
+    {% endfor %}
+</ul>
+
 <h2>Thong ke nguoi dung</h2>
 <ul>
     {% for u in statsUser %}
