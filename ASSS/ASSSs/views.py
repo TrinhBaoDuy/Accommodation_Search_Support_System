@@ -408,6 +408,8 @@ class FollowViewSet(viewsets.ModelViewSet):
     pagination_class = paginators.ASSSPaginator
 
 
+
+
 class BookingViewSet(viewsets.ModelViewSet):
     queryset = Booking.objects.all()
     serializer_class = serializers.BookingSerializer
