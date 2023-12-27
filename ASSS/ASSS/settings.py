@@ -45,13 +45,18 @@ INSTALLED_APPS = [
     'cloudinary',
     'cloudinary_storage',
     'drf_yasg',
+    'oauth2_provider',
 ]
 
 import pymysql
-
-
 pymysql.install_as_MySQLdb()
 
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+    )
+}
 
 
 MIDDLEWARE = [
@@ -157,3 +162,7 @@ DEBUG_TOOLBAR_CONFIG = {
 INTERNAL_IPS = [
     '127.0.0.1',
 ]
+
+CLIENT_ID = 'cN1kSkRY92F0i41vOzIeNrtRHhHK3axzq5rOS6yA'
+CLIENT_SECRET = 'MyADr80ht4KhA1kRwBa4jKoQzUFlSGuVVyUdc4Pe3BdRVQVx45kkQOAWBojYcRj4Yfn0pmxLFuXwYIHrqvrQmKTFkGDIBfg03vzEWmNW2NxZHgURXDYBEXvcmgffp1fw'
+CODE_TWILLO = 'SBUJZ9X1Q1GJ5GAX1X9MMM94'
