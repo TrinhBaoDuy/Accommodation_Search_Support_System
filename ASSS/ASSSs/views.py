@@ -1,4 +1,3 @@
-import datetime
 
 from django.http import Http404, HttpResponseRedirect
 from drf_yasg import openapi
@@ -18,6 +17,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
 from twilio.rest import Client
 import random
+import datetime
 # Create your views here.
 
 
@@ -90,7 +90,7 @@ class ImageViewSet(viewsets.ModelViewSet, generics.ListAPIView):
     queryset = Image.objects.all()
     serializer_class = serializers.ImageSerializer
     pagination_class = paginators.ASSSPaginator
-
+    swagger_schema = None
     def get_queryset(self):
         queries = self.queryset
 
@@ -105,7 +105,7 @@ class PostViewSet(viewsets.ViewSet, generics.ListAPIView):
     queryset = Post.objects.all()
     serializer_class = serializers.PostSerializer
     pagination_class = paginators.ASSSPaginator
-
+    swagger_schema = None
     def list(self, request):
         queryset = self.get_queryset()
         serializer = self.serializer_class(queryset, many=True)
@@ -155,12 +155,14 @@ class DiscountViewSet(viewsets.ModelViewSet):
     queryset = Discount.objects.all()
     serializer_class = serializers.DiscountSerializer
     pagination_class = paginators.ASSSPaginator
+    swagger_schema = None
 
 
 class PostingPriceViewSet(viewsets.ModelViewSet):
     queryset = PostingPrice.objects.all()
     serializer_class = serializers.PostingPriceSerializer
     pagination_class = paginators.ASSSPaginator
+    swagger_schema = None
 
 
 class UserViewSet(viewsets.ViewSet):
@@ -188,7 +190,7 @@ class UserViewSet(viewsets.ViewSet):
             )
         }
     )
-    def create(self, request):
+    def create_user(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -402,11 +404,187 @@ class UserViewSet(viewsets.ViewSet):
         return Response("Password reset successful.", status=status.HTTP_200_OK)
 
 
-class FollowViewSet(viewsets.ModelViewSet):
-    queryset = Follow.objects.all()
+class FollowViewSet(viewsets.ViewSet):
+    queryset = Follow.objects.filter(active=True).all()
     serializer_class = serializers.FollowSerializer
     pagination_class = paginators.ASSSPaginator
+    parser_classes = [parsers.MultiPartParser]
 
+    @swagger_auto_schema(
+        operation_description="Get Followers By Current User",
+        manual_parameters=[
+            openapi.Parameter(
+                name="Authorization",
+                in_=openapi.IN_HEADER,
+                type=openapi.TYPE_STRING,
+                description="Bearer token",
+                required=False,
+                default="Bearer your_token_here"
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="Successful operation",
+                schema=serializers.UserSerializer
+            )
+        }
+    )
+    @action(methods=['get'], detail=False, url_path='followers-by-current-user')
+    def followers_by_current_user(self, request):
+        current_user = request.user
+        try:
+            followers = self.queryset.filter(followeduser=current_user)
+            serializer = serializers.FollowSerializer(followers, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Follow.DoesNotExist:
+            return Response("User has no followers", status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        operation_description="Get Followeduser By Current User",
+        manual_parameters=[
+            openapi.Parameter(
+                name="Authorization",
+                in_=openapi.IN_HEADER,
+                type=openapi.TYPE_STRING,
+                description="Bearer token",
+                required=False,
+                default="Bearer your_token_here"
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="Successful operation",
+                schema=serializers.UserSerializer
+            )
+        }
+    )
+    @action(methods=['get'], detail=False, url_path='followeduser-by-current-user')
+    def followeduser_by_current_user(self, request):
+        current_user = request.user
+        try:
+            followeduser = self.queryset.filter(follower=current_user)
+            serializer = serializers.FollowSerializer(followeduser, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Follow.DoesNotExist:
+            return Response("User has no followeduser", status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        operation_description="Create a new Follow",
+        manual_parameters=[
+            openapi.Parameter(
+                name="Authorization",
+                in_=openapi.IN_HEADER,
+                type=openapi.TYPE_STRING,
+                description="Bearer token",
+                required=True,
+                default="Bearer your_token_here"
+            ),
+            openapi.Parameter(
+                name="followed_user",
+                in_=openapi.IN_FORM,
+                type=openapi.TYPE_STRING,
+                description="ID User",
+                required=True
+            ),
+        ],
+        responses={
+            200: openapi.Response(
+                description="Follow created"
+            ),
+            400: openapi.Response(
+                description="Follow fall"
+            )
+        }
+    )
+    @action(methods=['post'], url_path='create-or-update-follow', detail=False)
+    def create_or_update_follow(self, request):
+        current_user = request.user
+        followed_user_id = request.data.get('followed_user')
+
+        try:
+            followed_user = User.objects.get(id=followed_user_id)
+        except followed_user.DoesNotExist:
+            return Response("The followed user does not exist.", status=status.HTTP_400_BAD_REQUEST)
+
+        if current_user.following.filter(followeduser=followed_user, active=True).exists():
+            return Response("You have already followed this user.", status=status.HTTP_400_BAD_REQUEST)
+
+        existing_follow = current_user.following.filter(followeduser=followed_user).first()
+        if existing_follow:
+            if existing_follow.active:
+                return Response("You have already followed this user.", status=status.HTTP_400_BAD_REQUEST)
+            else:
+                existing_follow.active = True
+                existing_follow.save()
+                return Response("Follow updated successfully at "+str(datetime.date.today().strftime('%d/%m/%Y')), status=status.HTTP_200_OK)
+
+        if current_user.__eq__(followed_user):
+            return Response("You cannot follow yourself.", status=status.HTTP_400_BAD_REQUEST)
+
+        if current_user.__eq__(followed_user):
+            return Response("You cannot follow yourself.", status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = serializers.FollowSerializer(data={
+            'follower': current_user.id,
+            'followeduser': followed_user_id
+        })
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response("Follow created successfully.", status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+    @swagger_auto_schema(
+        operation_description="UnFollow",
+        manual_parameters=[
+            openapi.Parameter(
+                name="Authorization",
+                in_=openapi.IN_HEADER,
+                type=openapi.TYPE_STRING,
+                description="Bearer token",
+                required=True,
+                default="Bearer your_token_here"
+            ),
+            openapi.Parameter(
+                name="followed_user",
+                in_=openapi.IN_FORM,
+                type=openapi.TYPE_STRING,
+                description="ID User",
+                required=True
+            ),
+        ],
+        responses={
+            200: openapi.Response(
+                description="UnFollow successfully"
+            ),
+            400: openapi.Response(
+                description="UnFollow fall"
+            )
+        }
+    )
+    @action(methods=['post'], url_path='un-follow', detail=False)
+    def un_follow(self, request):
+        current_user = request.user
+        followed_user_id = request.data.get('followed_user')
+
+        try:
+            followed_user = User.objects.get(id=followed_user_id)
+        except followed_user.DoesNotExist:
+            return Response("The followed user does not exist.", status=status.HTTP_400_BAD_REQUEST)
+
+        if current_user.__eq__(followed_user):
+            return Response("You cannot UnFollow yourself.", status=status.HTTP_400_BAD_REQUEST)
+
+        if not current_user.following.filter(followeduser=followed_user, active=True).exists():
+            return Response("You do not follow this user", status=status.HTTP_400_BAD_REQUEST)
+
+        follow = current_user.following.get(followeduser=followed_user, follower=current_user)
+        follow.delete()
+
+        return Response("UnFollow successfully.", status=status.HTTP_200_OK)
 
 
 
@@ -414,3 +592,4 @@ class BookingViewSet(viewsets.ModelViewSet):
     queryset = Booking.objects.all()
     serializer_class = serializers.BookingSerializer
     pagination_class = paginators.ASSSPaginator
+    swagger_schema = None

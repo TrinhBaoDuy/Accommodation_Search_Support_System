@@ -1,3 +1,5 @@
+import datetime
+
 from ASSSs.models import House , Image, Post, Discount, PostingPrice, User, Follow, Booking, Role
 from rest_framework import serializers
 
@@ -44,7 +46,7 @@ class UserSerializer(serializers.ModelSerializer):
                 }
             }
 
-    def create(self, validated_data):
+    def create_user(self, validated_data):
         data = validated_data.copy()
         user = User.objects.create(**data)
         user.set_password(validated_data.get('password'))
@@ -56,6 +58,11 @@ class FollowSerializer(serializers.ModelSerializer):
     class Meta:
         model = Follow
         fields = '__all__'
+
+    def create_or_update_follow(self, validated_data):
+        follow = Follow.objects.create(**validated_data)
+        follow.save()
+        return follow
 
 
 class BookingSerializer(serializers.ModelSerializer):

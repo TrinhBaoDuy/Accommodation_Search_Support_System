@@ -15,7 +15,7 @@ class BaseModel(models.Model):
         ordering = ['-id']
 
     def delete(self, *args, **kwargs):
-        # self.active = False
+        self.active = False
         self.deleted_date = timezone.now()
         self.save()
 
