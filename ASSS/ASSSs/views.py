@@ -1,10 +1,12 @@
+from threading import activeCount
 
 from django.http import Http404, HttpResponseRedirect
+from django.shortcuts import get_object_or_404
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action, permission_classes
 from ASSSs import serializers, paginators
-from ASSSs.models import House, Image, Post, Discount, PostingPrice, User, Follow, Booking
+from ASSSs.models import House, Image, Post, Discount, PostingPrice, User, Follow, Booking, Role, Comment
 from rest_framework import viewsets, generics, status, permissions, parsers
 from rest_framework.response import Response
 from rest_framework.authentication import SessionAuthentication
@@ -21,76 +23,143 @@ import datetime
 # Create your views here.
 
 
-class HouseViewSet(viewsets.ViewSet, generics.ListAPIView):
-    queryset = House.objects.all()
+class HouseViewSet(viewsets.ViewSet):
+    queryset = House.objects.filter(active=True).all()
     serializer_class = serializers.HouseSerializer
     pagination_class = paginators.ASSSPaginator
-    swagger_schema = None
-
+    parser_classes = [parsers.MultiPartParser]
+    # swagger_schema = None
 
     def list(self, request):
         queryset = self.get_queryset()
         serializer = self.serializer_class(queryset, many=True)
         return Response(serializer.data)
 
-    # @permission_classes([IsAuthenticated])
-    def retrieve(self, request, pk=None):
-        house = self.get_object(pk)
-        serializer = self.serializer_class(house)
-        return Response(serializer.data)
-
-    # @permission_classes([IsAuthenticated])
-    def create(self, request):
+    @swagger_auto_schema(
+        operation_description="Create a new house",
+        request_body=serializers.HouseSerializer,
+        responses={
+            201: serializers.HouseSerializer(),
+            400: "Bad request"
+        }
+    )
+    @action(methods=['post'], url_name='create-house', detail=False)
+    def create_house(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    # @permission_classes([IsAuthenticated])
-    def update(self, request, pk=None):
-        house = self.get_object(pk)
-        serializer = self.serializer_class(house, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    # @permission_classes([IsAuthenticated])
-    def destroy(self, request, pk=None):
-        house = self.get_object(pk)
-        house.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-    def get_object(self, pk):
-        try:
-            return House.objects.get(pk=pk)
-        except House.DoesNotExist:
-            raise Http404
-
-    def get_queryset(self):
+    @swagger_auto_schema(
+        method='get',
+        operation_description="Get a list of houses",
+        manual_parameters=[
+            openapi.Parameter(
+                name="address",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                description="address",
+                required=False,
+            ),
+        ],
+        responses={
+            200: serializers.HouseSerializer(many=True),
+            400: "Bad request"
+        }
+    )
+    @action(methods=['get'], detail=False)
+    def get_queryset(self, request):
         queryset = self.queryset
 
-        address = self.request.query_params.get("address")
+        address = request.query_params.get("address")
         if address:
             queryset = queryset.filter(address__icontains=address)
 
-        return queryset
+        acreage = request.query_params.get("acreage")
+        if acreage:
+            queryset = queryset.filter(acreage__icontains=acreage)
 
-    @action(methods=['get'], detail=True)
+        return Response(serializers.HouseSerializer(queryset, many=True).data, status=status.HTTP_200_OK)
+
+    @action(methods=['get'], detail=True, url_path='images')
     def images(self, request, pk):
-        images = self.get_object().image_set.all()
-        # import pdb
-        # pdb.set_trace()
-        return Response(serializers.ImageSerializer(images, many=True,  context={'request': request}).data,
-                        status=status.HTTP_200_OK)
+        house = self.queryset.filter(id=pk).first()
+        if not house:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        images = house.image_set.all()
+        return Response(serializers.ImageSerializerShow(images, many=True, context={'request': request}).data, status=status.HTTP_200_OK)
 
 
-class ImageViewSet(viewsets.ModelViewSet, generics.ListAPIView):
-    queryset = Image.objects.all()
+class ImageViewSet(viewsets.ViewSet):
+    queryset = Image.objects.filter(active=True).all()
     serializer_class = serializers.ImageSerializer
     pagination_class = paginators.ASSSPaginator
-    swagger_schema = None
+    parser_classes = [parsers.MultiPartParser]
+    # swagger_schema = None
+
+    @swagger_auto_schema(
+        operation_description="Push Images House",
+        manual_parameters=[
+            openapi.Parameter(
+                name="Authorization",
+                in_=openapi.IN_HEADER,
+                type=openapi.TYPE_STRING,
+                description="Bearer token",
+                required=False,
+                default="Bearer your_token_here"
+            ),
+            openapi.Parameter(
+                name="image",
+                in_=openapi.IN_FORM,
+                type=openapi.TYPE_FILE,
+                description="Enter the image",
+                required=True,
+            ),
+            openapi.Parameter(
+                name="house",
+                in_=openapi.IN_FORM,
+                type=openapi.TYPE_NUMBER,
+                description="house_id",
+                required=True
+            ),
+        ],
+        responses={
+            200: openapi.Response(
+                description="Successful operation",
+                schema=serializers.UserSerializer
+            )
+        }
+    )
+    @permission_classes([IsAuthenticated])
+    @action(methods=['post'], url_name='push-images-for-house', detail=False)
+    def push_images_for_house(self, request):
+        user = request.user
+        new_image = request.FILES.get('image')
+        house_id = request.data.get('house')
+
+        if not new_image:
+            return Response("Image is required.", status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            house = House.objects.get(id=house_id, active=True)
+        except House.DoesNotExist:
+            return Response("House does not exist.", status=status.HTTP_400_BAD_REQUEST)
+
+        # self.serializer_class().push_images_for_house(house_id, new_image)
+        serializer = serializers.ImageSerializer(data={
+            'imageURL': new_image,
+            'house': house_id
+        })
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response("Images for house created successfully.", status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(serializers.ImageSerializer().data, status=status.HTTP_200_OK)
+
     def get_queryset(self):
         queries = self.queryset
 
@@ -101,46 +170,103 @@ class ImageViewSet(viewsets.ModelViewSet, generics.ListAPIView):
         return queries
 
 
-class PostViewSet(viewsets.ViewSet, generics.ListAPIView):
-    queryset = Post.objects.all()
+class PostViewSet(viewsets.ViewSet):
+    queryset = Post.objects.filter(active=True).all()
     serializer_class = serializers.PostSerializer
     pagination_class = paginators.ASSSPaginator
-    swagger_schema = None
+    parser_classes = [parsers.MultiPartParser]
+    # swagger_schema = None
+
     def list(self, request):
-        queryset = self.get_queryset()
-        serializer = self.serializer_class(queryset, many=True)
+        queryset = self.queryset
+        serializer = serializers.PostSerializerShow(queryset, many=True)
         return Response(serializer.data)
 
-    def retrieve(self, request, pk=None):
-        post = self.get_object(pk)
-        serializer = self.serializer_class(post)
+    @action(methods=['get'], url_name='list-post-not-accepted', detail=False)
+    def list_post_not_accepted(self, request):
+        queryset = self.queryset.filter(status=0).all()
+        serializer = serializers.PostSerializerShow(queryset, many=True)
         return Response(serializer.data)
 
-    def create(self, request):
-        serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    @action(methods=['get'], url_name='list-post-accepted', detail=False)
+    def list_post_accepted(self, request):
+        queryset = self.queryset.filter(status=1).filter(postingdate__lte=datetime.datetime.now(), expirationdate__gte=datetime.datetime.now()).order_by('-postingdate').all()
+        serializer = serializers.PostSerializerShow(queryset, many=True)
+        return Response(serializer.data)
 
-    def update(self, request, pk=None):
-        post = self.get_object(pk)
-        serializer = self.serializer_class(post, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    @swagger_auto_schema(
+        operation_description="Accept Post",
+        manual_parameters=[
+            openapi.Parameter(
+                name="pk",
+                in_=openapi.IN_FORM,
+                type=openapi.TYPE_NUMBER,
+                description="Post Id",
+                required=True,
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="Successfully",
+            ),
+            400: openapi.Response(
+                description="Bad request",
+            ),
+        }
+    )
+    @action(methods=['post'], detail=False, url_path='accept-post')
+    def accept_post(self, request):
+        pk = request.data.get('pk')
 
-    def destroy(self, request, pk=None):
-        post = self.get_object(pk)
-        post.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-    def get_object(self, pk):
         try:
-            return Post.objects.get(pk=pk)
+            post = self.queryset.get(id=pk)
         except Post.DoesNotExist:
-            raise Http404
+            return Response("This post does not exist.", status=status.HTTP_404_NOT_FOUND)
+
+        if post.status != 0:
+            return Response("This post has been published.", status=status.HTTP_400_BAD_REQUEST)
+
+        self.serializer_class().accept_post(post)
+        post.refresh_from_db()
+
+        return Response("Accept this post successfully", status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        operation_description="Not Accept Post",
+        manual_parameters=[
+            openapi.Parameter(
+                name="pk",
+                in_=openapi.IN_FORM,
+                type=openapi.TYPE_NUMBER,
+                description="Post Id",
+                required=True,
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="Successfully",
+            ),
+            400: openapi.Response(
+                description="Bad request",
+            ),
+        }
+    )
+    @action(methods=['post'], detail=False, url_path='not-accept-post')
+    def not_accept_post(self, request):
+        pk = request.data.get('pk')
+
+        try:
+            post = self.queryset.get(id=pk)
+        except Post.DoesNotExist:
+            return Response("This post does not exist.", status=status.HTTP_404_NOT_FOUND)
+
+        if post.status == 0:
+            return Response("This post has been not accepted.", status=status.HTTP_400_BAD_REQUEST)
+
+        self.serializer_class().unaccept_post(post)
+        post.refresh_from_db()
+
+        return Response("Not Accept this post successfully", status=status.HTTP_200_OK)
 
     def get_queryset(self):
         queries = self.queryset
@@ -150,19 +276,194 @@ class PostViewSet(viewsets.ViewSet, generics.ListAPIView):
             queries = queries.filter(house__address__icontains=q)
         return queries
 
+    @swagger_auto_schema(
+        operation_description="Create a new post",
+        request_body=serializers.PostSerializer,
+        responses={
+            201: openapi.Response(
+                description="Post created successfully",
+                schema=serializers.PostSerializer
+            ),
+            400: openapi.Response(
+                description="Bad request"
+            )
+        }
+    )
+    @action(methods=['post'], url_name='create-post', detail=False)
+    def create_post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @swagger_auto_schema(
+        operation_description="Delete Post",
+        manual_parameters=[
+            openapi.Parameter(
+                name="pk",
+                in_=openapi.IN_FORM,
+                type=openapi.TYPE_NUMBER,
+                description="Post Id",
+                required=True,
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="Successfully",
+            ),
+            400: openapi.Response(
+                description="Bad request",
+            ),
+        }
+    )
+    @action(methods=['post'], url_path='delete-post', detail=False)
+    def delete_post(self, request):
+        pk = request.data.get('pk')
+
+        try:
+            post = self.queryset.get(id=pk)
+        except Post.DoesNotExist:
+            return Response("This post does not exist.", status=status.HTTP_404_NOT_FOUND)
+
+        if post.status != 1:
+            return Response("Your post is awaiting confirmation. Please delete after the article has been posted", status=status.HTTP_404_NOT_FOUND)
+
+        post.delete()
+
+        return Response("Delete post successfully.", status=status.HTTP_200_OK)
+
+    @action(methods=['get'], detail=True, url_path='comments')
+    def comment(self, request, pk):
+        post = self.queryset.filter(id=pk).first()
+        if not post:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        comments = post.comment_set.all()
+        return Response(serializers.CommentSerializerShow(comments, many=True, context={'request': request}).data, status=status.HTTP_200_OK)
+
+
+class CommentViewSet(viewsets.ViewSet):
+    queryset = Comment.objects.filter(active=True).all()
+    serializer_class = serializers.CommentSerializer
+    pagination_class = paginators.ASSSPaginator
+    parser_classes = [parsers.MultiPartParser]
+    # swagger_schema = None
+
+    @swagger_auto_schema(
+        operation_description="Create a new Comment",
+        request_body=serializers.CommentSerializer,
+        responses={
+            201: openapi.Response(
+                description="Comment created successfully",
+                schema=serializers.CommentSerializer
+            ),
+            400: openapi.Response(
+                description="Bad request"
+            )
+        }
+    )
+    @action(methods=['post'], url_name='create-comment', detail=False)
+    def create_comment(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @swagger_auto_schema(
+        operation_description="Delete Comment",
+        manual_parameters=[
+            openapi.Parameter(
+                name="pk",
+                in_=openapi.IN_FORM,
+                type=openapi.TYPE_NUMBER,
+                description="Comment Id",
+                required=True,
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="Successfully",
+            ),
+            400: openapi.Response(
+                description="Bad request",
+            ),
+        }
+    )
+    @action(methods=['post'], url_path='delete-comment', detail=False)
+    def delete_comment(self, request):
+        pk = request.data.get('pk')
+
+        try:
+            comment = self.queryset.get(id=pk)
+        except Comment.DoesNotExist:
+            return Response("This Comment does not exist.", status=status.HTTP_404_NOT_FOUND)
+
+        if comment.active == 0:
+            return Response("The comment has been deleted", status=status.HTTP_404_NOT_FOUND)
+
+        comment.delete()
+
+        return Response("Delete comment successfully.", status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        operation_description="Change value Comment",
+        manual_parameters=[
+            openapi.Parameter(
+                name="pk",
+                in_=openapi.IN_FORM,
+                type=openapi.TYPE_INTEGER,
+                description="Comment Id",
+                required=True,
+            ),
+            openapi.Parameter(
+                name="value",
+                in_=openapi.IN_FORM,
+                type=openapi.TYPE_STRING,
+                description="Comment value",
+                required=True,
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="Successfully",
+            ),
+            400: openapi.Response(
+                description="Bad request",
+            ),
+        }
+    )
+    @action(methods=['post'], url_path='change-value-comment', detail=False)
+    def change_value_comment(self, request):
+        pk = request.data.get('pk')
+        value = request.data.get('value')
+
+        try:
+            comment = self.queryset.get(id=pk)
+        except Comment.DoesNotExist:
+            return Response("This comment does not exist.", status=status.HTTP_404_NOT_FOUND)
+
+        if comment.active == 0:
+            return Response("The comment has been deleted", status=status.HTTP_404_NOT_FOUND)
+
+        self.serializer_class().change_value_comment(comment, value)
+        comment.refresh_from_db()
+
+        return Response("Change value comment successfully.", status=status.HTTP_200_OK)
+
 
 class DiscountViewSet(viewsets.ModelViewSet):
     queryset = Discount.objects.all()
     serializer_class = serializers.DiscountSerializer
     pagination_class = paginators.ASSSPaginator
-    swagger_schema = None
+    # swagger_schema = None
 
 
 class PostingPriceViewSet(viewsets.ModelViewSet):
     queryset = PostingPrice.objects.all()
     serializer_class = serializers.PostingPriceSerializer
     pagination_class = paginators.ASSSPaginator
-    swagger_schema = None
+    # swagger_schema = None
 
 
 class UserViewSet(viewsets.ViewSet):
@@ -170,6 +471,7 @@ class UserViewSet(viewsets.ViewSet):
     serializer_class = serializers.UserSerializer
     pagination_class = paginators.ASSSPaginator
     parser_classes = [parsers.MultiPartParser]
+    # swagger_schema = None
 
     def get_permissions(self):
         if self.action.__eq__('current_user') or self.action.__eq__('reset_password'):
@@ -190,6 +492,7 @@ class UserViewSet(viewsets.ViewSet):
             )
         }
     )
+    @action(methods=['post'], url_name='create-user', detail=False)
     def create_user(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
@@ -211,9 +514,11 @@ class UserViewSet(viewsets.ViewSet):
         ],
         responses={
             200: openapi.Response(
-                description="Successful operation",
-                schema=serializers.UserSerializer
-            )
+                description="SMS sent with password reset instructions",
+            ),
+            400: openapi.Response(
+                description="User with this phone number does not exist",
+            ),
         }
     )
     @action(methods=['get'], url_name='current-user', detail=False)
@@ -315,8 +620,6 @@ class UserViewSet(viewsets.ViewSet):
         for i in range(6):
             otp += random.choice(digits)
 
-
-
         # Gửi tin nhắn SMS chứa hướng dẫn đặt lại mật khẩu
         account_sid = 'AC1c77c96392cffe33999c3ca1b6635e7d'
         auth_token = '474fe6134a659fef4dadf1fed37425c7'
@@ -403,12 +706,90 @@ class UserViewSet(viewsets.ViewSet):
 
         return Response("Password reset successful.", status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(
+        operation_description="Update Avatar",
+        manual_parameters=[
+            openapi.Parameter(
+                name="Authorization",
+                in_=openapi.IN_HEADER,
+                type=openapi.TYPE_STRING,
+                description="Bearer token",
+                required=False,
+                default="Bearer your_token_here"
+            ),
+            openapi.Parameter(
+                name="avatar",
+                in_=openapi.IN_FORM,
+                type=openapi.TYPE_FILE,
+                description="Enter the new avatar",
+                required=True,
+            ),
+        ],
+        responses={
+            200: openapi.Response(
+                description="Successful operation",
+                schema=serializers.UserSerializer
+            )
+        }
+    )
+    @permission_classes([IsAuthenticated])
+    @action(methods=['post'], url_path='update-avatar', detail=False)
+    def update_avatar(self, request):
+        user = request.user
+        new_avatar = request.FILES.get('avatar')
+        if not new_avatar:
+            return Response("Avatar is required.", status=status.HTTP_400_BAD_REQUEST)
+
+        self.serializer_class().update_avatar(user, new_avatar)
+        user.refresh_from_db()
+
+        return Response(serializers.UserSerializer(user).data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        operation_description="Get the current user",
+        manual_parameters=[
+            openapi.Parameter(
+                name="Authorization",
+                in_=openapi.IN_HEADER,
+                type=openapi.TYPE_STRING,
+                description="Bearer token",
+                required=False,
+                default="Bearer your_token_here"
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="Succes",
+            ),
+            400: openapi.Response(
+                description="User does not exist",
+            ),
+        }
+    )
+    @action(methods=['get'], detail=False, url_path='myposts')
+    def myposts(self, request):
+        user = self.queryset.filter(id=request.user.id).first()
+        if not user:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        posts = user.post_set.all()
+        return Response(serializers.PostSerializerShow(posts, many=True, context={'request': request}).data, status=status.HTTP_200_OK)
+
+
+    @action(methods=['get'], detail=True, url_path='posts')
+    def posts(self, request, pk):
+        user = self.queryset.filter(id=pk).first()
+        if not user:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        posts = user.post_set.all()
+        return Response(serializers.PostSerializerShow(posts, many=True, context={'request': request}).data, status=status.HTTP_200_OK)
+
 
 class FollowViewSet(viewsets.ViewSet):
     queryset = Follow.objects.filter(active=True).all()
     serializer_class = serializers.FollowSerializer
     pagination_class = paginators.ASSSPaginator
     parser_classes = [parsers.MultiPartParser]
+    # swagger_schema = None
 
     @swagger_auto_schema(
         operation_description="Get Followers By Current User",
@@ -425,7 +806,7 @@ class FollowViewSet(viewsets.ViewSet):
         responses={
             200: openapi.Response(
                 description="Successful operation",
-                schema=serializers.UserSerializer
+                schema=serializers.FollowSerializer
             )
         }
     )
@@ -434,7 +815,7 @@ class FollowViewSet(viewsets.ViewSet):
         current_user = request.user
         try:
             followers = self.queryset.filter(followeduser=current_user)
-            serializer = serializers.FollowSerializer(followers, many=True)
+            serializer = serializers.FollowSerializerShow(followers, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Follow.DoesNotExist:
             return Response("User has no followers", status=status.HTTP_200_OK)
@@ -463,7 +844,7 @@ class FollowViewSet(viewsets.ViewSet):
         current_user = request.user
         try:
             followeduser = self.queryset.filter(follower=current_user)
-            serializer = serializers.FollowSerializer(followeduser, many=True)
+            serializer = serializers.FollowSerializerShow(followeduser, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Follow.DoesNotExist:
             return Response("User has no followeduser", status=status.HTTP_200_OK)
@@ -535,8 +916,6 @@ class FollowViewSet(viewsets.ViewSet):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-
     @swagger_auto_schema(
         operation_description="UnFollow",
         manual_parameters=[
@@ -587,9 +966,214 @@ class FollowViewSet(viewsets.ViewSet):
         return Response("UnFollow successfully.", status=status.HTTP_200_OK)
 
 
-
-class BookingViewSet(viewsets.ModelViewSet):
-    queryset = Booking.objects.all()
+class BookingViewSet(viewsets.ViewSet):
+    queryset = Booking.objects.filter(active=True).all()
     serializer_class = serializers.BookingSerializer
     pagination_class = paginators.ASSSPaginator
-    swagger_schema = None
+    parser_classes = [parsers.MultiPartParser]
+    # swagger_schema = None
+
+    @swagger_auto_schema(
+        operation_description="Create Booking",
+        manual_parameters=[
+            openapi.Parameter(
+                name="Authorization",
+                in_=openapi.IN_HEADER,
+                type=openapi.TYPE_STRING,
+                description="Bearer token",
+                required=True,
+                default="Bearer your_token_here"
+            ),
+            openapi.Parameter(
+                name="post",
+                in_=openapi.IN_FORM,
+                type=openapi.TYPE_INTEGER,
+                description="Post Id",
+                required=True
+            ),
+        ],
+        responses={
+            201: openapi.Response(
+                description="Booking created successfully",
+                schema=serializers.BookingSerializer
+            ),
+            400: openapi.Response(
+                description="Bad request"
+            )
+        }
+    )
+    @action(methods=['post'], url_name='create-booking', detail=False)
+    def create_booking(self, request):
+        serializer = self.serializer_class(data={
+            'user': request.user.id,
+            'post': request.data.get('post'),
+            'status': 0
+        })
+        if serializer.is_valid():
+            instance = serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @swagger_auto_schema(
+        operation_description="Delete Booking",
+        manual_parameters=[
+            openapi.Parameter(
+                name="pk",
+                in_=openapi.IN_FORM,
+                type=openapi.TYPE_NUMBER,
+                description="Booking Id",
+                required=True,
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="Successfully",
+            ),
+            400: openapi.Response(
+                description="Bad request",
+            ),
+        }
+    )
+    @action(methods=['post'], url_path='delete-booking', detail=False)
+    def delete_booking(self, request):
+        pk = request.data.get('pk')
+
+        try:
+            booking = self.queryset.get(id=pk)
+        except Booking.DoesNotExist:
+            return Response("This Booking does not exist.", status=status.HTTP_404_NOT_FOUND)
+
+        if booking.status == 1:
+            return Response("Your schedule has been accepted. You cannot delete", status=status.HTTP_404_NOT_FOUND)
+
+        booking.delete()
+
+        return Response("Delete booking successfully.", status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        operation_description="List Booking Not Accept",
+        manual_parameters=[
+            openapi.Parameter(
+                name="Authorization",
+                in_=openapi.IN_HEADER,
+                type=openapi.TYPE_STRING,
+                description="Bearer token",
+                required=True,
+                default="Bearer your_token_here"
+            ),
+        ],
+        responses={
+            200: openapi.Response(
+                description="Successfully",
+                schema=serializers.BookingSerializer
+            ),
+            404: openapi.Response(
+                description="Not Found"
+            )
+        }
+    )
+    @action(methods=['get'], url_name='list-booking-not-accept', detail=False)
+    def list_booking_not_accept(self, request):
+        user = request.user
+        bookings = self.queryset.filter(status=0, post__user=user, post__status=1).all()
+
+        if not bookings.exists():
+            return Response("The bookings do not exist.", status=status.HTTP_404_NOT_FOUND)
+
+        serializer = serializers.BookingSerializerShow(bookings, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        operation_description="Accept Booking",
+        manual_parameters=[
+            openapi.Parameter(
+                name="pk",
+                in_=openapi.IN_FORM,
+                type=openapi.TYPE_NUMBER,
+                description="Booking Id",
+                required=True,
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="Successfully",
+            ),
+            400: openapi.Response(
+                description="Bad request",
+            )
+        }
+    )
+    @action(methods=['post'], detail=False, url_path='accept-booking')
+    def accept_booking(self, request):
+        pk = request.data.get('pk')
+
+        try:
+            booking = self.queryset.get(id=pk)
+        except Booking.DoesNotExist:
+            return Response("This post does not exist.", status=status.HTTP_404_NOT_FOUND)
+
+        if booking.status != 0:
+            return Response("This post has been accepted.", status=status.HTTP_400_BAD_REQUEST)
+
+        self.serializer_class().accept_booking(booking)
+        booking.refresh_from_db()
+
+        return Response("Accept successfully", status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        operation_description="Not Accept Booking",
+        manual_parameters=[
+            openapi.Parameter(
+                name="pk",
+                in_=openapi.IN_FORM,
+                type=openapi.TYPE_NUMBER,
+                description="Booking Id",
+                required=True,
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="Successfully",
+            ),
+            400: openapi.Response(
+                description="Bad request",
+            ),
+        }
+    )
+    @action(methods=['post'], detail=False, url_path='not-accept-booking')
+    def not_accept_post(self, request):
+        pk = request.data.get('pk')
+
+        try:
+            booking = self.queryset.get(id=pk)
+        except Post.DoesNotExist:
+            return Response("This post does not exist.", status=status.HTTP_404_NOT_FOUND)
+
+        if booking.status == 0:
+            return Response("This booking has been not accepted.", status=status.HTTP_400_BAD_REQUEST)
+
+        self.serializer_class().unaccept_booking(booking)
+        booking.refresh_from_db()
+
+        return Response("Not Accept successfully", status=status.HTTP_200_OK)
+
+    def get_queryset(self):
+        queries = self.queryset
+
+        q = self.request.query_params.get("address")
+        if q:
+            queries = queries.filter(house__address__icontains=q)
+        return queries
+
+
+class RoleViewSet(viewsets.ViewSet):
+    # queryset = Role.objects.all()
+    queryset = Role.objects.exclude(rolename='Admin')
+    serializer_class = serializers.RoleSerializer
+    pagination_class = paginators.ASSSPaginator
+    # swagger_schema = None
+
+    def list(self, request):
+        queryset = self.queryset
+        serializer = self.serializer_class(queryset, many=True)
+        return Response(serializer.data)
