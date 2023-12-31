@@ -214,7 +214,7 @@ class PostViewSet(viewsets.ViewSet):
             ),
         }
     )
-    @action(methods=['post'], detail=False, url_path='accept-post')
+    @action(methods=['patch'], detail=False, url_path='accept-post')
     def accept_post(self, request):
         pk = request.data.get('pk')
 
@@ -251,7 +251,7 @@ class PostViewSet(viewsets.ViewSet):
             ),
         }
     )
-    @action(methods=['post'], detail=False, url_path='not-accept-post')
+    @action(methods=['patch'], detail=False, url_path='not-accept-post')
     def not_accept_post(self, request):
         pk = request.data.get('pk')
 
@@ -433,7 +433,7 @@ class CommentViewSet(viewsets.ViewSet):
             ),
         }
     )
-    @action(methods=['post'], url_path='change-value-comment', detail=False)
+    @action(methods=['patch'], url_path='change-value-comment', detail=False)
     def change_value_comment(self, request):
         pk = request.data.get('pk')
         value = request.data.get('value')
@@ -567,7 +567,7 @@ class UserViewSet(viewsets.ViewSet):
             )
         }
     )
-    @action(methods=['post'], url_path='reset-password', detail=False)
+    @action(methods=['patch'], url_path='reset-password', detail=False)
     def reset_password(self, request):
         user = request.user
 
@@ -733,7 +733,7 @@ class UserViewSet(viewsets.ViewSet):
         }
     )
     @permission_classes([IsAuthenticated])
-    @action(methods=['post'], url_path='update-avatar', detail=False)
+    @action(methods=['patch'], url_path='update-avatar', detail=False)
     def update_avatar(self, request):
         user = request.user
         new_avatar = request.FILES.get('avatar')
@@ -1103,7 +1103,7 @@ class BookingViewSet(viewsets.ViewSet):
             )
         }
     )
-    @action(methods=['post'], detail=False, url_path='accept-booking')
+    @action(methods=['patch'], detail=False, url_path='accept-booking')
     def accept_booking(self, request):
         pk = request.data.get('pk')
 
@@ -1140,7 +1140,7 @@ class BookingViewSet(viewsets.ViewSet):
             ),
         }
     )
-    @action(methods=['post'], detail=False, url_path='not-accept-booking')
+    @action(methods=['patch'], detail=False, url_path='not-accept-booking')
     def not_accept_post(self, request):
         pk = request.data.get('pk')
 

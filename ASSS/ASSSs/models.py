@@ -27,15 +27,22 @@ class Role(models.Model):
         return self.rolename
 
 
+GENDER_CHOICES = (
+    ('M', 'Male'),
+    ('F', 'Female'),
+    ('O', 'Other'),
+)
+
+
 class User(AbstractUser, BaseModel):
     phonenumber = models.FloatField(default=0)
     dob = models.DateField(null=True)
     address = models.CharField(max_length=100, null=True)
     avatar = CloudinaryField('avatar', null=True, folder="ASSS-avatar")
     role = models.ForeignKey(Role, on_delete=models.RESTRICT, related_query_name='users', null=True)
-
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, null=True)
     def __str__(self):
-        return f"ID: {self.id}, Name: {self.first_name} {self.last_name}, DOB: {self.dob}, Email: {self.email}, Address: {self.address}, Role: {self.role}"
+        return f"ID: {self.id}, Name: {self.first_name} {self.last_name},Gender: {self.gender}, DOB: {self.dob}, Email: {self.email}, Address: {self.address}, Role: {self.role}"
 
 
 class Follow(BaseModel):
