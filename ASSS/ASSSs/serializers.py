@@ -1,4 +1,5 @@
 import datetime
+from urllib.parse import urljoin
 
 from ASSSs.models import House , Image, Post, Discount, PostingPrice, User, Follow, Booking, Role, Comment
 from rest_framework import serializers
@@ -24,9 +25,17 @@ class ImageSerializer(serializers.ModelSerializer):
 
 class ImageSerializerShow(serializers.ModelSerializer):
     house = HouseSerializer()
+
     class Meta:
         model = Image
         fields = '__all__'
+
+    def get_image_url(self, image):
+        base_url = 'https://res.cloudinary.com/dyfzuigha/'
+        if image.imageURL and base_url not in urljoin(base_url, image.imageURL):
+            return image.imageURL.url
+
+    imageURL = serializers.SerializerMethodField(method_name='get_image_url')
 
 
 class DiscountSerializer(serializers.ModelSerializer):
@@ -50,6 +59,13 @@ class UserSerializer(serializers.ModelSerializer):
                     'write_only': True
                 }
             }
+
+    def get_avatar_url(self, user):
+        base_url = 'https://res.cloudinary.com/dyfzuigha/'
+        if user.avatar and base_url not in urljoin(base_url, user.avatar.url):
+            return user.avatar.url
+
+    avatar = serializers.SerializerMethodField(method_name='get_avatar_url')
 
     def create_user(self, validated_data):
         data = validated_data.copy()

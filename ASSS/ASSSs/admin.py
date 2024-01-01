@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.shortcuts import render
 from django.template.response import TemplateResponse
 
 from . import dao
@@ -20,14 +21,23 @@ class ASSSAdminSite(admin.AdminSite):
             'stats': dao.count_image_by_house(),
             'houses': dao.load_houses(),
             'statsUser': dao.count_user_by_role(),
-            'users' : dao.load_user(),
+            'users': dao.load_user(),
+            'stats_user_role_by_year': dao.count_user_role_by_year(),
+            'stats_user_role_by_month': dao.count_users_each_month_of_the_year(),
+            'stats_user_role_by_quarter': dao.count_users_each_quarter_of_the_year(),
         })
+
 
 
 class RoleAdmin(admin.ModelAdmin):
     list_display = ['id', 'rolename']
     search_fields = ['rolename']
     list_filter = ['id', 'rolename']
+
+    class Media:
+        css = {
+            'all': ('/static/css/nhap.css', )
+        }
 
 
 admin_site = ASSSAdminSite(name='myapp')

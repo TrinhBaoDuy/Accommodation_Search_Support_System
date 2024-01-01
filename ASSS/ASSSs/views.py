@@ -131,7 +131,6 @@ class ImageViewSet(viewsets.ViewSet):
             )
         }
     )
-    @permission_classes([IsAuthenticated])
     @action(methods=['post'], url_name='push-images-for-house', detail=False)
     def push_images_for_house(self, request):
         user = request.user

@@ -1,72 +1,99 @@
 {% extends 'admin/base_site.html' %}
 
 {% block content %}
-<h1>THÔNG KÊ HE THONG</h1>
 
-<ul>
-    {% for c in stats %}
-        <li>DIA CHI <strong>{{ c.address }}</strong>: {{ c.count_images }} HINH</li>
-    {% endfor %}
-</ul>
+<div class="container">
+  <h1>THỐNG KÊ HỆ THỐNG</h1>
 
-<h2>Thong tin cac nha tro</h2>
-<ul>
-    {% for h in houses %}
-        <li>{{h.id}} - {{h.address}} - {{h.price}}</li>
-    {% endfor %}
-</ul>
+  <h2>Thống kê người dùng</h2>
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Month</th>
+          <th>Active Hosts</th>
+          <th>Not Active Hosts</th>
+          <th>Active Users</th>
+          <th>Not Active Users</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in stats_user_role_by_year %}
+        <tr>
+          <td>{{ u.year }}</td>
+          <td>{{ u.active_users_role_is_host }}</td>
+          <td>{{ u.not_active_users_role_is_host }}</td>
+          <td>{{ u.active_users_role_is_user }}</td>
+          <td>{{ u.not_active_users_role_is_user }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 
-<h2>Thong tin nguoi dung</h2>
-<ul>
-    {% for u in users %}
-        <li>{{u.id}} - {{u.username}} - <img src="{{u.avatar.url}}"></li>
-    {% endfor %}
-</ul>
-
-<h2>Thong ke nguoi dung</h2>
-<ul>
-    {% for u in statsUser %}
-        <li>{{u.rolename}} : {{u.count_users}} người</li>
-    {% endfor %}
-</ul>
-<canvas id="myChart"></canvas>
+  <div class="chart-container">
+<!--    <canvas id="myChart"></canvas>-->
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    let labels = [];
-    let values = [];
+  let labels = [];
+  let activeUsersData = [];
+  let notActiveUsersData = [];
 
-    {% for c in statsUser %}
-    values.push({{ c.count_users }})
-    labels.push('{{ c.role_name }}')
-    {% endfor %}
+  {% for u in stats_user_role_by_month %}
+    labels.push('{{ u.month }}');
+    activeUsersData.push({{ u.active_users }});
+    notActiveUsersData.push({{ u.not_active_users }});
+  {% endfor %}
 
-    window.onload = () => {
-        const ctx = document.getElementById('myChart');
+  const ctx = document.getElementById('myChart').getContext('2d');
 
-      new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: '# So luong',
-            data: values,
-            borderWidth: 1,
-            backgroundColor: [
-              'rgb(255, 99, 132)',
-              'rgb(54, 162, 235)',
-              'rgb(255, 205, 86)'
-            ]
-          }]
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Active Users',
+          data: activeUsersData,
+          backgroundColor: 'rgba(75, 192, 192, 0.8)',
+          borderWidth: 1,
+          borderRadius: 5,
         },
-        options: {
-          scales: {
-            y: {
-              beginAtZero: true
-            }
-          }
-        }
-      });
-    }
+        {
+          label: 'Not Active Users',
+          data: notActiveUsersData,
+          backgroundColor: 'rgba(255, 99, 132, 0.8)',
+          borderWidth: 1,
+          borderRadius: 5,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          grid: {
+            display: false,
+          },
+        },
+        y: {
+          beginAtZero: true,
+          ticks: {
+            precision: 0,
+          },
+        },
+      },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+        },
+      },
+    },
+  });
 </script>
 {% endblock %}
