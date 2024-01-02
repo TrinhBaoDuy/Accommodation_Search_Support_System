@@ -41,6 +41,7 @@ class User(AbstractUser, BaseModel):
     avatar = CloudinaryField('avatar', null=True, folder="ASSS-avatar")
     role = models.ForeignKey(Role, on_delete=models.RESTRICT, related_query_name='users', null=True)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, null=True)
+
     def __str__(self):
         return f"ID: {self.id}, Name: {self.first_name} {self.last_name},Gender: {self.gender}, DOB: {self.dob}, Email: {self.email}, Address: {self.address}, Role: {self.role}"
 

@@ -142,14 +142,14 @@
 									<!-- <i class="icon-copy fa fa-stethoscope" aria-hidden="true"></i> -->
 								</div>
 								<div class="font-14 text-right">
-									<div><i class="icon-copy ion-arrow-up-c"></i>{{count_host.active_percentage}}%</div>
+									<div><i class="icon-copy ion-arrow-up-c"></i>{{count_user.active_percentage}}%</div>
 									<div class="font-12">Percentage of active accounts</div>
 								</div>
 							</div>
 							<div class="d-flex justify-content-between align-items-end">
 								<div class="text-white">
-									<div class="font-14">Account Host</div>
-									<div class="font-24 weight-500">{{count_host.total_hosts}}</div>
+									<div class="font-14">Account User</div>
+									<div class="font-24 weight-500">{{count_user.total_users}}</div>
 								</div>
 								<div class="max-width-150">
 									<canvas id="pieChartU"></canvas>
@@ -765,8 +765,8 @@
     labels.push('Tháng'+'{{ u.month }}');
     activeHostsData.push({{ u.active_users_role_is_host }});
     activeUsersData.push({{ u.active_users_role_is_user }});
-    notactiveUsersData.push({{ u.not_active_users_role_is_host }});
-    notactiveHostsData.push({{ u.not_active_users_role_is_user }});
+    notactiveUsersData.push({{ u.not_active_users_role_is_user }});
+    notactiveHostsData.push({{ u.not_active_users_role_is_host }});
   {% endfor %}
 
   var ctx = document.getElementById("myChart").getContext('2d');
@@ -804,14 +804,12 @@
           }]
       },
       options: {
-          scales: {
-              yAxes: [{
-                  ticks: {
-                      beginAtZero:true
-                  }
-              }]
-          }
-      }
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
   });
 </script>
 <script>

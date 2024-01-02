@@ -33,7 +33,7 @@ def count_host():
         'total_hosts': total_hosts,
         'active_hosts': active_hosts,
         'not_active_hosts': not_active_hosts,
-        'active_percentage': active_percentage,
+        'active_percentage': round(active_percentage)
     }
 
 
@@ -47,7 +47,7 @@ def count_user():
         'total_users': total_users,
         'active_users': active_users,
         'not_active_users': not_active_users,
-        'active_percentage': active_percentage,
+        'active_percentage': round(active_percentage)
     }
 
 

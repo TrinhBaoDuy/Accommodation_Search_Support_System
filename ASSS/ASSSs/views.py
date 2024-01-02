@@ -569,6 +569,46 @@ class UserViewSet(viewsets.ViewSet):
         return Response(serializers.UserSerializer(request.user).data)
 
     @swagger_auto_schema(
+        operation_description="Get the follower",
+        manual_parameters=[
+            openapi.Parameter(
+                name="Authorization",
+                in_=openapi.IN_HEADER,
+                type=openapi.TYPE_STRING,
+                description="Bearer token",
+                required=False,
+                default="Bearer your_token_here"
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="Successfully",
+            ),
+            400: openapi.Response(
+                description="User does not exist",
+            ),
+        }
+    )
+    @action(methods=['get'], url_name='my_infor_count', detail=False)
+    def my_infor_count(self, request):
+        user = request.user,
+        count_follower = Follow.objects.filter(followeduser_id=request.user.id, active=True).count()
+        count_following = Follow.objects.filter(follower_id=request.user.id, active=True).count()
+        count_post = Post.objects.filter(user__id=request.user.id, active=True).count()
+        return Response({'count_follower': count_follower, 'count_following': count_following, 'count_post':count_post}, status=status.HTTP_200_OK)
+
+    @action(methods=['get'], url_name='infor_count', detail=True)
+    def infor_count(self, request, pk):
+        try:
+            user = self.queryset.get(pk=pk)
+        except User.DoesNotExist:
+            return Response("User does not exist",status=status.HTTP_404_NOT_FOUND)
+        count_follower = Follow.objects.filter(followeduser_id=pk, active=True).count()
+        count_following = Follow.objects.filter(follower_id=pk, active=True).count()
+        count_post = Post.objects.filter(user__id=pk, active=True).count()
+        return Response({'count_follower': count_follower, 'count_following': count_following, 'count_post': count_post}, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
         operation_description="Reset password",
         manual_parameters=[
             openapi.Parameter(
@@ -816,7 +856,6 @@ class UserViewSet(viewsets.ViewSet):
             return Response(status=status.HTTP_404_NOT_FOUND)
         posts = user.post_set.all()
         return Response(serializers.PostSerializerShow(posts, many=True, context={'request': request}).data, status=status.HTTP_200_OK)
-
 
     @action(methods=['get'], detail=True, url_path='posts')
     def posts(self, request, pk):

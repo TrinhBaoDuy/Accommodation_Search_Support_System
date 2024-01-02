@@ -26,7 +26,7 @@ class ASSSAdminSite(admin.AdminSite):
             'stats_user_role_by_month': dao.count_users_each_month_of_the_year(),
             'stats_user_role_by_quarter': dao.count_users_each_quarter_of_the_year(),
             'count_host': dao.count_host(),
-            'count_user': dao.count_host(),
+            'count_user': dao.count_user(),
 
         })
 
