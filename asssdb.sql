@@ -38,7 +38,7 @@ CREATE TABLE `assss_booking` (
   KEY `ASSSs_booking_user_id_e5ca6b1a_fk_ASSSs_user_id` (`user_id`),
   CONSTRAINT `ASSSs_booking_post_id_e6814d8b_fk_ASSSs_post_id` FOREIGN KEY (`post_id`) REFERENCES `assss_post` (`id`),
   CONSTRAINT `ASSSs_booking_user_id_e5ca6b1a_fk_ASSSs_user_id` FOREIGN KEY (`user_id`) REFERENCES `assss_user` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -47,7 +47,6 @@ CREATE TABLE `assss_booking` (
 
 LOCK TABLES `assss_booking` WRITE;
 /*!40000 ALTER TABLE `assss_booking` DISABLE KEYS */;
-INSERT INTO `assss_booking` VALUES (1,1,1,54,1,'2023-12-28','2023-12-28',NULL),(2,1,5,54,1,'2023-12-28','2023-12-28',NULL),(3,0,2,50,0,'2023-12-28','2023-12-28','2023-12-28 09:50:39.918467'),(4,0,2,54,1,'2023-12-28','2023-12-28',NULL),(5,0,5,54,1,'2023-12-28','2023-12-28',NULL),(6,0,4,54,1,'2023-12-28','2023-12-28',NULL),(7,0,3,54,1,'2023-12-28','2023-12-28',NULL),(8,0,3,54,1,'2023-12-28','2023-12-28',NULL),(9,0,3,54,1,'2023-12-28','2023-12-28',NULL),(10,0,3,54,1,'2023-12-28','2023-12-28',NULL);
 /*!40000 ALTER TABLE `assss_booking` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -75,7 +74,7 @@ CREATE TABLE `assss_comment` (
   CONSTRAINT `ASSSs_comment_parentcomment_id_d8d74d6b_fk_ASSSs_comment_id` FOREIGN KEY (`parentcomment_id`) REFERENCES `assss_comment` (`id`),
   CONSTRAINT `ASSSs_comment_post_id_374a6216_fk_ASSSs_post_id` FOREIGN KEY (`post_id`) REFERENCES `assss_post` (`id`),
   CONSTRAINT `ASSSs_comment_user_id_cea7dda8_fk_ASSSs_user_id` FOREIGN KEY (`user_id`) REFERENCES `assss_user` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -84,7 +83,6 @@ CREATE TABLE `assss_comment` (
 
 LOCK TABLES `assss_comment` WRITE;
 /*!40000 ALTER TABLE `assss_comment` DISABLE KEYS */;
-INSERT INTO `assss_comment` VALUES (1,'hay qua',NULL,2,50,0,'2023-12-28','2023-12-28','2023-12-28 06:23:41.604780'),(2,'toi sua comment ne',NULL,2,50,1,'2023-12-28','2023-12-28',NULL),(3,'tra loi hay qua',NULL,1,51,1,'2023-12-28','2023-12-28',NULL),(4,'tra loi hay qua',1,1,51,1,'2023-12-28','2023-12-28',NULL),(5,'coment moi ne',NULL,1,49,1,'2023-12-28','2023-12-28',NULL),(6,'tra loi coment moi',4,1,50,1,'2023-12-28','2023-12-28',NULL);
 /*!40000 ALTER TABLE `assss_comment` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -104,7 +102,7 @@ CREATE TABLE `assss_discount` (
   `updated_date` date DEFAULT NULL,
   `deleted_date` datetime(6) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -113,7 +111,6 @@ CREATE TABLE `assss_discount` (
 
 LOCK TABLES `assss_discount` WRITE;
 /*!40000 ALTER TABLE `assss_discount` DISABLE KEYS */;
-INSERT INTO `assss_discount` VALUES (1,'',0,1,'2023-12-28','2023-12-28',NULL),(2,'SALE 10%',0.1,1,'2023-12-28','2023-12-28',NULL);
 /*!40000 ALTER TABLE `assss_discount` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -137,7 +134,7 @@ CREATE TABLE `assss_follow` (
   KEY `ASSSs_follow_follower_id_7503e8f3_fk_ASSSs_user_id` (`follower_id`),
   CONSTRAINT `ASSSs_follow_followeduser_id_0c49883c_fk_ASSSs_user_id` FOREIGN KEY (`followeduser_id`) REFERENCES `assss_user` (`id`),
   CONSTRAINT `ASSSs_follow_follower_id_7503e8f3_fk_ASSSs_user_id` FOREIGN KEY (`follower_id`) REFERENCES `assss_user` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -146,7 +143,6 @@ CREATE TABLE `assss_follow` (
 
 LOCK TABLES `assss_follow` WRITE;
 /*!40000 ALTER TABLE `assss_follow` DISABLE KEYS */;
-INSERT INTO `assss_follow` VALUES (1,51,50,1,'2023-12-26','2023-12-26',NULL),(2,52,54,1,'2023-12-26','2023-12-26',NULL),(3,52,50,1,'2023-12-26','2023-12-26',NULL),(4,50,53,1,'2023-12-26','2023-12-26',NULL),(5,54,50,0,'2023-12-27','2023-12-27','2023-12-27 12:22:20.822879');
 /*!40000 ALTER TABLE `assss_follow` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -168,7 +164,7 @@ CREATE TABLE `assss_house` (
   `updated_date` date DEFAULT NULL,
   `deleted_date` datetime(6) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -177,7 +173,6 @@ CREATE TABLE `assss_house` (
 
 LOCK TABLES `assss_house` WRITE;
 /*!40000 ALTER TABLE `assss_house` DISABLE KEYS */;
-INSERT INTO `assss_house` VALUES (1,'An Giang',1,10000,1,1,'2023-12-26','2023-12-26','2023-12-26 10:09:15.000000'),(2,'12',0,0,0,1,'2023-12-27','2023-12-27',NULL);
 /*!40000 ALTER TABLE `assss_house` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -199,7 +194,7 @@ CREATE TABLE `assss_image` (
   PRIMARY KEY (`id`),
   KEY `ASSSs_image_house_id_4b7ce815_fk_ASSSs_house_id` (`house_id`),
   CONSTRAINT `ASSSs_image_house_id_4b7ce815_fk_ASSSs_house_id` FOREIGN KEY (`house_id`) REFERENCES `assss_house` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -208,7 +203,6 @@ CREATE TABLE `assss_image` (
 
 LOCK TABLES `assss_image` WRITE;
 /*!40000 ALTER TABLE `assss_image` DISABLE KEYS */;
-INSERT INTO `assss_image` VALUES (1,'image/upload/v1703686030/ASSS-house/rpozkqvd3v7vcryxyrml.jpg',1,1,'2023-12-27','2023-12-27',NULL),(2,'image/upload/v1703735488/ASSS-house/ffntjtpcxwciuyzmxqpx.jpg',1,1,'2023-12-28','2023-12-28',NULL);
 /*!40000 ALTER TABLE `assss_image` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -243,7 +237,7 @@ CREATE TABLE `assss_post` (
   CONSTRAINT `ASSSs_post_house_id_8bc55cb5_fk_ASSSs_house_id` FOREIGN KEY (`house_id`) REFERENCES `assss_house` (`id`),
   CONSTRAINT `ASSSs_post_postingprice_id_6783a3cc_fk_ASSSs_postingprice_id` FOREIGN KEY (`postingprice_id`) REFERENCES `assss_postingprice` (`id`),
   CONSTRAINT `ASSSs_post_user_id_97763d14_fk_ASSSs_user_id` FOREIGN KEY (`user_id`) REFERENCES `assss_user` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -252,7 +246,6 @@ CREATE TABLE `assss_post` (
 
 LOCK TABLES `assss_post` WRITE;
 /*!40000 ALTER TABLE `assss_post` DISABLE KEYS */;
-INSERT INTO `assss_post` VALUES (1,'Cho thue tro Go Vap','nha cua rat tien nghi, gan truong dai hoc','2023-12-28 00:00:00.000000','2023-12-30 00:00:00.000000',0,1,1,1,51,1,'2023-12-28','2023-12-28',NULL),(2,'Nha tro Q7','vo cung tien nghi','2023-11-11 00:00:00.000000','2023-11-30 00:00:00.000000',1,1,1,1,51,0,'2023-12-28','2023-12-28','2023-12-28 05:29:02.756068'),(3,'Nha tro Q7','vo cung tien nghi','2023-12-11 00:00:00.000000','2023-12-30 00:00:00.000000',1,1,1,1,51,1,'2023-12-28','2023-12-28',NULL),(4,'Nha tro Q7','vo cung tien nghi','2023-11-11 00:00:00.000000','2023-12-30 00:00:00.000000',1,1,1,1,51,1,'2023-12-28','2023-12-28',NULL),(5,'Nha tro Q7','vo cung tien nghi','2023-12-29 00:00:00.000000','2023-12-30 00:00:00.000000',1,1,1,1,51,1,'2023-12-28','2023-12-28',NULL),(6,'Nha tro Q3','vo cung tien nghi','2023-12-28 00:00:00.000000','2023-12-30 00:00:00.000000',1,1,1,1,51,1,'2023-12-28','2023-12-28',NULL);
 /*!40000 ALTER TABLE `assss_post` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -267,7 +260,7 @@ CREATE TABLE `assss_postingprice` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `value` double NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -276,7 +269,6 @@ CREATE TABLE `assss_postingprice` (
 
 LOCK TABLES `assss_postingprice` WRITE;
 /*!40000 ALTER TABLE `assss_postingprice` DISABLE KEYS */;
-INSERT INTO `assss_postingprice` VALUES (1,100000);
 /*!40000 ALTER TABLE `assss_postingprice` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -292,7 +284,7 @@ CREATE TABLE `assss_role` (
   `rolename` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `rolename` (`rolename`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -301,7 +293,6 @@ CREATE TABLE `assss_role` (
 
 LOCK TABLES `assss_role` WRITE;
 /*!40000 ALTER TABLE `assss_role` DISABLE KEYS */;
-INSERT INTO `assss_role` VALUES (1,'Admin'),(2,'Host'),(3,'User');
 /*!40000 ALTER TABLE `assss_role` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -338,7 +329,7 @@ CREATE TABLE `assss_user` (
   UNIQUE KEY `username` (`username`),
   KEY `ASSSs_user_role_id_c479c720_fk_ASSSs_role_id` (`role_id`),
   CONSTRAINT `ASSSs_user_role_id_c479c720_fk_ASSSs_role_id` FOREIGN KEY (`role_id`) REFERENCES `assss_role` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=63 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -347,7 +338,7 @@ CREATE TABLE `assss_user` (
 
 LOCK TABLES `assss_user` WRITE;
 /*!40000 ALTER TABLE `assss_user` DISABLE KEYS */;
-INSERT INTO `assss_user` VALUES (49,'pbkdf2_sha256$600000$uH3U5A6ZB5peEUYy64dCHP$7Ol+ocAV7+PmGCLq8l+iHbD2a/XTMypYvpyZzZRkFZo=',NULL,0,'admin','John','Doe','john@example.com',0,1,'2023-12-26 08:07:05.121827','123 Main St',NULL,'1990-01-01',123456789,1,1,'2023-12-26','2023-12-27',NULL,NULL),(50,'pbkdf2_sha256$600000$oFTMohu6uPF7Cr7nquzwpf$Sg87KFZb/xARXu3fZM1jnxg8sozc1PYLNvSxzXTb8z8=',NULL,0,'jane_smith','Jane','Smith','jane@example.com',0,1,'2023-12-26 08:07:05.127761','456 Elm St','image/upload/v1703682425/ASSS-avatar/gt4k1ihyxyildaeagzqt.jpg','1995-05-10',987654321,3,1,'2023-12-26','2023-12-27',NULL,NULL),(51,'pbkdf2_sha256$600000$XCLqTg6Y9ICWpAcKM2qjlE$+WnJ+LXQykQciJpvvc3/mNTjwmW3pBEFSD8YiYMTLw0=',NULL,0,'host1','Host','One','host1@example.com',0,1,'2023-12-26 08:07:05.133212','123 Main St','','1990-01-01',111111111,2,1,'2023-12-26','2023-12-26',NULL,NULL),(52,'pbkdf2_sha256$600000$7rKOEtH5esXRyNI1Uvom01$d0kXlirbSqveGHstjNsqmbv65oFpIMJUMZQSaaDRZEM=',NULL,0,'host2','Host','Two','host2@example.com',0,1,'2023-12-26 08:07:05.137435','456 Elm St','','1990-02-02',222222222,2,1,'2023-12-26','2023-12-26',NULL,NULL),(53,'pbkdf2_sha256$600000$VWquw2Fp96csBjtjPRlCeC$drRRiipmHlNVRQYVmXbTCrwJke+FAg8emYu9NDm4HV4=',NULL,0,'host3','Host','Three','host3@example.com',0,1,'2023-12-26 08:07:05.143057','789 Oak St','','1990-03-03',333333333,2,1,'2023-12-26','2023-12-26',NULL,NULL),(54,'pbkdf2_sha256$600000$7rPArXy35MHgXyQBkaeiHX$EwncHaUF0mVgQJuO44jPC2X9hH9GG+SKU6T543jFglw=',NULL,0,'user1','User','One','user1@example.com',0,1,'2023-12-26 08:07:05.148269','123 Main St','','1995-01-01',444444444,3,1,'2023-12-26','2023-12-26',NULL,NULL),(55,'pbkdf2_sha256$600000$CQhilbZntxjhrSb143S4A2$RzYDeoCe4tl+ZTG1/CUiu+eB8aIWbX+ErMHMxMrEm3E=',NULL,0,'user2','User','Two','user2@example.com',0,1,'2023-12-26 08:07:05.155309','456 Elm St','','1995-02-02',555555555,3,1,'2023-12-26','2023-12-26',NULL,NULL),(56,'pbkdf2_sha256$600000$raIv8W907fSHI5wD6mZVBw$KC+Q8Q+Z1CM8SI4DoCUChPa7ekaKsTQDYs0kwg8oQU0=','2023-12-26 11:30:45.757925',1,'main','','','main@gmail.com',1,1,'2023-12-26 09:48:45.577354',NULL,NULL,NULL,0,NULL,1,'2023-12-26','2023-12-26',NULL,NULL),(57,'123',NULL,0,'duy1','trinh','duy','duy@gmail.com',0,1,'2023-12-26 11:14:13.617977','an giang','image/upload/v1703589257/i3vrvomkh0wrv8cgeio5.png','2002-11-16',123456789,2,1,'2023-12-26','2023-12-26',NULL,NULL),(58,'pbkdf2_sha256$600000$KAJQlLTHG8Y9L2NDR5FQjG$re+BXXxXG1oiZqqEv5ifVeEvChuQJ2UWfub4hBtKm8Q=',NULL,0,'duy13','trinh','duy','duy@gmail.com',0,1,'2023-12-26 11:16:17.654149','an giang','image/upload/v1703589381/jdtcyovpgsssvmftzlpg.png','2002-11-16',123456789,2,1,'2023-12-26','2023-12-26',NULL,NULL),(59,'pbkdf2_sha256$600000$oMJQZ6AZRyOVv3DbnlcXDZ$NTSlHlXBd5YP+TZFEr+tHuILMTZhj+DCr45RedbgvTU=',NULL,0,'duy3','trinh','duy','duy@gmail.com',0,1,'2023-12-26 11:24:08.346508','an giang','image/upload/v1703589851/o46mv8of1p1utlyd24jz.png','2002-11-16',123456789,2,1,'2023-12-26','2023-12-26',NULL,NULL),(60,'pbkdf2_sha256$600000$uTGH3jF80XIPCSQJkTR5dV$CdWPBHX26GmGZpeWnDUPl88f6prdGnkoJF+qgDBWwcg=',NULL,0,'nhap','Nguyen','Van Phuoc','2051050075duy@ou.edu.vn',0,1,'2023-12-26 11:30:50.000000','An Giang','image/upload/v1703590281/dfrdjtnrqzqr7noxf5ro.jpg','2023-12-01',388853371,2,1,'2023-12-26','2023-12-27',NULL,NULL),(61,'pbkdf2_sha256$600000$M16SjKSGBEJKuzLDb0Grbo$ifY3srrVKIECL4CWLcAXlo0df//hCrDDp6r8Kz/Q/do=',NULL,0,'duy5','trinh','duy','duy@gmail.com',0,1,'2023-12-26 11:36:32.445361','an giang','image/upload/v1703590596/ASSS-avatar/l1yjozj8inrzkhqqovvg.png','2002-11-16',123456789,2,1,'2023-12-26','2023-12-26',NULL,NULL),(62,'pbkdf2_sha256$600000$EbdkKEio7aEeJMtZho5Are$uZSJS8TDDuzkYcNaqaYoFShYQI9g2njxS5EkQ4AxR9Y=',NULL,0,'duy6','trinh','duy','duy@gmail.com',0,1,'2023-12-27 09:26:03.467975','an giang','image/upload/v1703669165/ASSS-avatar/acwuufmu7zmalmz3bwvw.png','2002-11-16',123456789,2,1,'2023-12-27','2023-12-27',NULL,NULL);
+INSERT INTO `assss_user` VALUES (1,'pbkdf2_sha256$720000$3CaCLL4loPyAGyeGx4fxwm$pkW07H45GnDC5knI9t0PK/QTQAyUz2JZmq+LKaK+MQo=','2024-01-02 04:58:23.221300',1,'admin','','','admin@gmail.com',1,1,'2024-01-02 04:57:39.801446',NULL,NULL,NULL,0,NULL,1,'2024-01-02','2024-01-02',NULL,NULL);
 /*!40000 ALTER TABLE `assss_user` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -509,7 +500,7 @@ CREATE TABLE `django_admin_log` (
   CONSTRAINT `django_admin_log_content_type_id_c4bce8eb_fk_django_co` FOREIGN KEY (`content_type_id`) REFERENCES `django_content_type` (`id`),
   CONSTRAINT `django_admin_log_user_id_c564eba6_fk_ASSSs_user_id` FOREIGN KEY (`user_id`) REFERENCES `assss_user` (`id`),
   CONSTRAINT `django_admin_log_chk_1` CHECK ((`action_flag` >= 0))
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -518,7 +509,6 @@ CREATE TABLE `django_admin_log` (
 
 LOCK TABLES `django_admin_log` WRITE;
 /*!40000 ALTER TABLE `django_admin_log` DISABLE KEYS */;
-INSERT INTO `django_admin_log` VALUES (1,'2023-12-26 10:09:28.884277','1','ID: 1, Address: An Giang, Price: 10000.0, Soluong: 1.0nguoi/phong, Dientich: 1.0m^2',1,'[{\"added\": {}}]',6,56),(2,'2023-12-26 11:31:19.912343','60','ID: 60, Name: Nguyen Van Phuoc, DOB: 2023-12-01, Email: 2051050075duy@ou.edu.vn, Address: An Giang, Role: Host',1,'[{\"added\": {}}]',7,56);
 /*!40000 ALTER TABLE `django_admin_log` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -570,7 +560,7 @@ CREATE TABLE `django_migrations` (
 
 LOCK TABLES `django_migrations` WRITE;
 /*!40000 ALTER TABLE `django_migrations` DISABLE KEYS */;
-INSERT INTO `django_migrations` VALUES (1,'contenttypes','0001_initial','2023-12-26 06:13:58.909563'),(2,'contenttypes','0002_remove_content_type_name','2023-12-26 06:13:59.067092'),(3,'auth','0001_initial','2023-12-26 06:13:59.816182'),(4,'auth','0002_alter_permission_name_max_length','2023-12-26 06:13:59.947552'),(5,'auth','0003_alter_user_email_max_length','2023-12-26 06:13:59.961061'),(6,'auth','0004_alter_user_username_opts','2023-12-26 06:13:59.973610'),(7,'auth','0005_alter_user_last_login_null','2023-12-26 06:13:59.989113'),(8,'auth','0006_require_contenttypes_0002','2023-12-26 06:13:59.994658'),(9,'auth','0007_alter_validators_add_error_messages','2023-12-26 06:14:00.003105'),(10,'auth','0008_alter_user_username_max_length','2023-12-26 06:14:00.017525'),(11,'auth','0009_alter_user_last_name_max_length','2023-12-26 06:14:00.030091'),(12,'auth','0010_alter_group_name_max_length','2023-12-26 06:14:00.052975'),(13,'auth','0011_update_proxy_permissions','2023-12-26 06:14:00.062947'),(14,'auth','0012_alter_user_first_name_max_length','2023-12-26 06:14:00.076331'),(15,'ASSSs','0001_initial','2023-12-26 06:14:00.627209'),(16,'ASSSs','0002_house_acreage_house_price_house_quantity','2023-12-26 06:14:00.706852'),(17,'ASSSs','0003_discount_postingprice_role_user_address_user_avatar_and_more','2023-12-26 06:14:02.837971'),(18,'ASSSs','0004_alter_user_avatar','2023-12-26 06:14:03.002338'),(19,'ASSSs','0005_alter_image_imageurl','2023-12-26 06:14:03.120157'),(20,'ASSSs','0006_alter_image_imageurl_alter_user_avatar','2023-12-26 06:14:03.379868'),(21,'ASSSs','0007_alter_booking_options_alter_comment_options_and_more','2023-12-26 06:14:04.710995'),(22,'admin','0001_initial','2023-12-26 06:14:04.902631'),(23,'admin','0002_logentry_remove_auto_add','2023-12-26 06:14:04.924683'),(24,'admin','0003_logentry_add_action_flag_choices','2023-12-26 06:14:04.947046'),(25,'sessions','0001_initial','2023-12-26 06:14:04.999754'),(26,'ASSSs','0008_booking_deleted_date_comment_deleted_date_and_more','2023-12-26 06:19:48.189390'),(27,'ASSSs','0009_alter_user_avatar','2023-12-26 08:49:31.092477'),(28,'ASSSs','0010_alter_user_avatar','2023-12-26 09:28:08.872287'),(29,'ASSSs','0011_alter_user_avatar','2023-12-26 09:28:57.286428'),(30,'ASSSs','0012_alter_user_avatar','2023-12-26 09:37:02.734596'),(31,'ASSSs','0013_alter_image_imageurl','2023-12-26 11:36:20.713997'),(32,'oauth2_provider','0001_initial','2023-12-26 15:11:04.331058'),(33,'oauth2_provider','0002_auto_20190406_1805','2023-12-26 15:11:04.427556'),(34,'oauth2_provider','0003_auto_20201211_1314','2023-12-26 15:11:04.498359'),(35,'oauth2_provider','0004_auto_20200902_2022','2023-12-26 15:11:05.137454'),(36,'oauth2_provider','0005_auto_20211222_2352','2023-12-26 15:11:05.267052'),(37,'oauth2_provider','0006_alter_application_client_secret','2023-12-26 15:11:05.316701'),(38,'oauth2_provider','0007_application_post_logout_redirect_uris','2023-12-26 15:11:05.420703'),(39,'ASSSs','0014_user_gender','2023-12-31 04:18:07.824129');
+INSERT INTO `django_migrations` VALUES (1,'contenttypes','0001_initial','2024-01-02 04:56:39.197801'),(2,'contenttypes','0002_remove_content_type_name','2024-01-02 04:56:39.274594'),(3,'auth','0001_initial','2024-01-02 04:56:39.526503'),(4,'auth','0002_alter_permission_name_max_length','2024-01-02 04:56:39.579454'),(5,'auth','0003_alter_user_email_max_length','2024-01-02 04:56:39.587635'),(6,'auth','0004_alter_user_username_opts','2024-01-02 04:56:39.596934'),(7,'auth','0005_alter_user_last_login_null','2024-01-02 04:56:39.605177'),(8,'auth','0006_require_contenttypes_0002','2024-01-02 04:56:39.607868'),(9,'auth','0007_alter_validators_add_error_messages','2024-01-02 04:56:39.615845'),(10,'auth','0008_alter_user_username_max_length','2024-01-02 04:56:39.622638'),(11,'auth','0009_alter_user_last_name_max_length','2024-01-02 04:56:39.627509'),(12,'auth','0010_alter_group_name_max_length','2024-01-02 04:56:39.643071'),(13,'auth','0011_update_proxy_permissions','2024-01-02 04:56:39.649518'),(14,'auth','0012_alter_user_first_name_max_length','2024-01-02 04:56:39.656881'),(15,'ASSSs','0001_initial','2024-01-02 04:56:39.983662'),(16,'ASSSs','0002_house_acreage_house_price_house_quantity','2024-01-02 04:56:40.032976'),(17,'ASSSs','0003_discount_postingprice_role_user_address_user_avatar_and_more','2024-01-02 04:56:41.198903'),(18,'ASSSs','0004_alter_user_avatar','2024-01-02 04:56:41.319108'),(19,'ASSSs','0005_alter_image_imageurl','2024-01-02 04:56:41.393713'),(20,'ASSSs','0006_alter_image_imageurl_alter_user_avatar','2024-01-02 04:56:41.522287'),(21,'ASSSs','0007_alter_booking_options_alter_comment_options_and_more','2024-01-02 04:56:42.611940'),(22,'ASSSs','0008_booking_deleted_date_comment_deleted_date_and_more','2024-01-02 04:56:42.848556'),(23,'ASSSs','0009_alter_user_avatar','2024-01-02 04:56:42.892913'),(24,'ASSSs','0010_alter_user_avatar','2024-01-02 04:56:42.977050'),(25,'ASSSs','0011_alter_user_avatar','2024-01-02 04:56:43.021895'),(26,'ASSSs','0012_alter_user_avatar','2024-01-02 04:56:43.103671'),(27,'ASSSs','0013_alter_image_imageurl','2024-01-02 04:56:43.153701'),(28,'ASSSs','0014_user_gender','2024-01-02 04:56:43.199829'),(29,'admin','0001_initial','2024-01-02 04:56:43.348888'),(30,'admin','0002_logentry_remove_auto_add','2024-01-02 04:56:43.366729'),(31,'admin','0003_logentry_add_action_flag_choices','2024-01-02 04:56:43.379625'),(32,'oauth2_provider','0001_initial','2024-01-02 04:56:44.165475'),(33,'oauth2_provider','0002_auto_20190406_1805','2024-01-02 04:56:44.256964'),(34,'oauth2_provider','0003_auto_20201211_1314','2024-01-02 04:56:44.335247'),(35,'oauth2_provider','0004_auto_20200902_2022','2024-01-02 04:56:44.809186'),(36,'oauth2_provider','0005_auto_20211222_2352','2024-01-02 04:56:44.994613'),(37,'oauth2_provider','0006_alter_application_client_secret','2024-01-02 04:56:45.037091'),(38,'oauth2_provider','0007_application_post_logout_redirect_uris','2024-01-02 04:56:45.116407'),(39,'sessions','0001_initial','2024-01-02 04:56:45.153979');
 /*!40000 ALTER TABLE `django_migrations` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -596,7 +586,7 @@ CREATE TABLE `django_session` (
 
 LOCK TABLES `django_session` WRITE;
 /*!40000 ALTER TABLE `django_session` DISABLE KEYS */;
-INSERT INTO `django_session` VALUES ('0xx1mjsop6983xsnjyje3erys05bkd67','.eJxVjDsOAjEMBe-SGkUhcT5Q0nOGle04ZAEl0n4qxN1hpS2gfTPzXmrAdanDOss0jFmdlQ_q8DsS8kPaRvId261r7m2ZRtKbonc662vP8rzs7t9Bxbl-6-QDuJI8OHI-WPDsCO3JRAFOKEcMiYClGPQGC7lIUqxwMBBZEJx6fwD6Wjhg:1rIPAe:3SkmUKwT6C3jraFObYamQCvuzBqhiIncpJgnEsyi4KE','2024-01-10 08:21:44.513514'),('wr9812im5wuwwk76vefbflk3qyzphnln','.eJxVjDsOAjEMBe-SGkUhcT5Q0nOGle04ZAEl0n4qxN1hpS2gfTPzXmrAdanDOss0jFmdlQ_q8DsS8kPaRvId261r7m2ZRtKbonc662vP8rzs7t9Bxbl-6-QDuJI8OHI-WPDsCO3JRAFOKEcMiYClGPQGC7lIUqxwMBBZEJx6fwD6Wjhg:1rI5e1:1zZaqbXZDQME2fzRW1ieYHImUKaNr3_sRjFflXkwHnc','2024-01-09 11:30:45.862288');
+INSERT INTO `django_session` VALUES ('o59jqwua8klyun0ccjlpn9k58gyui9fk','.eJxVjEEOwiAQRe_C2hAGOrS4dO8ZyACDVA0kpV0Z765NutDtf-_9l_C0rcVvnRc_J3EWIE6_W6D44LqDdKd6azK2ui5zkLsiD9rltSV-Xg7376BQL99aJUbUTgPaTMgchwxWj2gn5ZQxGa2LA2dKBiZA0ClGF2wGYOVGRUq8P8sUNz0:1rKWr9:A50koJAsJdx7lqa49ok9tEpkXWI0Rxzt2LxI7BbXp5c','2024-01-16 04:58:23.330675');
 /*!40000 ALTER TABLE `django_session` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -628,7 +618,7 @@ CREATE TABLE `oauth2_provider_accesstoken` (
   CONSTRAINT `oauth2_provider_acce_id_token_id_85db651b_fk_oauth2_pr` FOREIGN KEY (`id_token_id`) REFERENCES `oauth2_provider_idtoken` (`id`),
   CONSTRAINT `oauth2_provider_acce_source_refresh_token_e66fbc72_fk_oauth2_pr` FOREIGN KEY (`source_refresh_token_id`) REFERENCES `oauth2_provider_refreshtoken` (`id`),
   CONSTRAINT `oauth2_provider_accesstoken_user_id_6e4c9a65_fk_ASSSs_user_id` FOREIGN KEY (`user_id`) REFERENCES `assss_user` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -637,7 +627,7 @@ CREATE TABLE `oauth2_provider_accesstoken` (
 
 LOCK TABLES `oauth2_provider_accesstoken` WRITE;
 /*!40000 ALTER TABLE `oauth2_provider_accesstoken` DISABLE KEYS */;
-INSERT INTO `oauth2_provider_accesstoken` VALUES (1,'AE7wPJ3SpMLhhUDPJc6yOlE1VzXylq','2023-12-27 01:33:37.075923','read write',1,49,'2023-12-26 15:33:37.076932','2023-12-26 15:33:37.076932',NULL,NULL),(2,'mrKbFT2fsOik3lXqMPgLzKQ09tKsmU','2023-12-27 02:44:14.992995','read write',1,49,'2023-12-26 16:44:14.992995','2023-12-26 16:44:14.992995',NULL,NULL),(3,'0zUAnnxKlrLtoNZ4zkcd1MnZpHSffJ','2023-12-27 16:18:14.207191','read write',1,49,'2023-12-27 06:18:14.207191','2023-12-27 06:18:14.207191',NULL,NULL),(4,'pi9BfHoO9phnv6XEZVoVC0RG64XX0F','2023-12-27 16:23:24.933117','read write',1,49,'2023-12-27 06:23:24.933117','2023-12-27 06:23:24.933117',NULL,NULL),(5,'KifwrOc6WHcuLxafr0cZ7FN9SbBPbW','2023-12-27 16:36:33.670172','read write',1,49,'2023-12-27 06:36:33.670172','2023-12-27 06:36:33.670172',NULL,NULL),(6,'Z9gbpSYIEUuip7wk1G62ay6kojMGWC','2023-12-27 19:04:48.190968','read write',1,50,'2023-12-27 09:04:48.191971','2023-12-27 09:04:48.191971',NULL,NULL),(7,'v9yeSWAdMCZfC0lDlEGgjjvE4n2yej','2023-12-27 19:57:02.374394','read write',1,50,'2023-12-27 09:57:02.375397','2023-12-27 09:57:02.375397',NULL,NULL),(8,'ofZXCQWuLQMEGKR3hf0j88GnElX6RT','2023-12-27 22:16:22.104039','read write',1,50,'2023-12-27 12:16:22.105691','2023-12-27 12:16:22.105691',NULL,NULL),(9,'PliyF1LlgyBvBefwoXld5noGk5PQy5','2023-12-28 17:01:53.028590','read write',1,50,'2023-12-28 07:01:53.029590','2023-12-28 07:01:53.029590',NULL,NULL),(10,'oD16aeV3qPsRfoUw8sF6hCRlFFBK36','2023-12-28 17:46:14.047304','read write',1,51,'2023-12-28 07:46:14.048304','2023-12-28 07:46:14.048304',NULL,NULL),(11,'uw9fug0D1DdNCVM2Eia1RSAW2zfneY','2023-12-28 17:47:46.216648','read write',1,54,'2023-12-28 07:47:46.217819','2023-12-28 07:47:46.217819',NULL,NULL),(12,'sRnKJWgGm24Wbx831sPh9y7rO7UxEB','2023-12-28 18:55:50.646526','read write',1,51,'2023-12-28 08:55:50.647657','2023-12-28 08:55:50.647657',NULL,NULL),(13,'e1BkViFLlxoVpJlyO5hMe9i0i7HswP','2023-12-28 19:13:21.815207','read write',1,50,'2023-12-28 09:13:21.816205','2023-12-28 09:13:21.816205',NULL,NULL),(14,'nkUZbByCn0hDqsw64FdKzv5Rrmq4Mi','2023-12-28 20:10:12.398621','read write',1,51,'2023-12-28 10:10:12.399618','2023-12-28 10:10:12.399618',NULL,NULL),(15,'2wMBzOafDx81n6tdH9TwBIfYOoHJPV','2023-12-31 15:39:04.809260','read write',1,51,'2023-12-31 05:39:04.809260','2023-12-31 05:39:04.809260',NULL,NULL),(16,'Ph9HCPuyifLy0prseTkuOWLK6zkGtc','2023-12-31 16:33:37.000462','read write',1,51,'2023-12-31 06:33:37.000462','2023-12-31 06:33:37.000462',NULL,NULL),(17,'X7C29gl7qaRrgYAY7bbvjdKP6UfMyJ','2024-01-01 17:43:00.140529','read write',1,51,'2024-01-01 07:43:00.141526','2024-01-01 07:43:00.141526',NULL,NULL),(18,'Pd7icOpNZMAWkpepM3VHbY2FLE1Bwe','2024-01-01 18:44:17.348300','read write',1,51,'2024-01-01 08:44:17.349692','2024-01-01 08:44:17.349692',NULL,NULL),(19,'4ZU5jVw0w2caGTuf4UJCaKA6QBt9ZB','2024-01-01 21:32:24.181954','read write',1,51,'2024-01-01 11:32:24.181954','2024-01-01 11:32:24.181954',NULL,NULL);
+INSERT INTO `oauth2_provider_accesstoken` VALUES (1,'icPJkZlH8jo78KBhKwsBvDfuwTO4Fq','2024-01-02 15:00:14.137171','read write',1,1,'2024-01-02 05:00:14.138176','2024-01-02 05:00:14.138176',NULL,NULL),(2,'fDd7PYN9nKXYbhyff3ICEbQKfJzPOC','2024-01-02 15:02:36.655573','read write',1,1,'2024-01-02 05:02:36.655573','2024-01-02 05:02:36.655573',NULL,NULL);
 /*!40000 ALTER TABLE `oauth2_provider_accesstoken` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -676,7 +666,7 @@ CREATE TABLE `oauth2_provider_application` (
 
 LOCK TABLES `oauth2_provider_application` WRITE;
 /*!40000 ALTER TABLE `oauth2_provider_application` DISABLE KEYS */;
-INSERT INTO `oauth2_provider_application` VALUES (1,'cN1kSkRY92F0i41vOzIeNrtRHhHK3axzq5rOS6yA','','confidential','password','pbkdf2_sha256$600000$Xwo9bR5bzbl6JNG7blrgcP$2kGSrfmvrEB3vgGmXuvK5+8EgPTraTODsPmJOWRiORU=','ASSS',56,0,'2023-12-26 15:14:48.608752','2023-12-26 15:14:48.608752','','');
+INSERT INTO `oauth2_provider_application` VALUES (1,'UXTi69lodcxqmENTZITNy3e0EHIJ64UzUqnb9Hu4','','confidential','password','pbkdf2_sha256$720000$5d4IEEcSQB4HNCSFLy3pq8$E6S/CKRouUaQ2kGzSZegTtEbkNOw1Qe+NiBBGd8Dy1o=','App',1,0,'2024-01-02 04:59:41.788041','2024-01-02 04:59:41.788041','','');
 /*!40000 ALTER TABLE `oauth2_provider_application` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -777,7 +767,7 @@ CREATE TABLE `oauth2_provider_refreshtoken` (
   CONSTRAINT `oauth2_provider_refr_access_token_id_775e84e8_fk_oauth2_pr` FOREIGN KEY (`access_token_id`) REFERENCES `oauth2_provider_accesstoken` (`id`),
   CONSTRAINT `oauth2_provider_refr_application_id_2d1c311b_fk_oauth2_pr` FOREIGN KEY (`application_id`) REFERENCES `oauth2_provider_application` (`id`),
   CONSTRAINT `oauth2_provider_refreshtoken_user_id_da837fce_fk_ASSSs_user_id` FOREIGN KEY (`user_id`) REFERENCES `assss_user` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -786,7 +776,7 @@ CREATE TABLE `oauth2_provider_refreshtoken` (
 
 LOCK TABLES `oauth2_provider_refreshtoken` WRITE;
 /*!40000 ALTER TABLE `oauth2_provider_refreshtoken` DISABLE KEYS */;
-INSERT INTO `oauth2_provider_refreshtoken` VALUES (1,'mAC25rvxg23GcoDLItvFLkIAdGCjVK',1,1,49,'2023-12-26 15:33:37.101977','2023-12-26 15:33:37.101977',NULL),(2,'8yZriF5mAwP3c2NwMfA89hUKZjl4uN',2,1,49,'2023-12-26 16:44:15.024453','2023-12-26 16:44:15.024453',NULL),(3,'pgvk8OhbvBthtmKtbqwI0J0Uq9gJMV',3,1,49,'2023-12-27 06:18:14.244403','2023-12-27 06:18:14.244403',NULL),(4,'pvUVDstJqLLRwWkTg1fUyBhMfxGiIm',4,1,49,'2023-12-27 06:23:24.938386','2023-12-27 06:23:24.938386',NULL),(5,'m3sn4GKXzybkEvqCb7sofukTG32hl5',5,1,49,'2023-12-27 06:36:33.674856','2023-12-27 06:36:33.674856',NULL),(6,'1o9YisS4YRznaJG88mfJ2cpvJp0gAn',6,1,50,'2023-12-27 09:04:48.207993','2023-12-27 09:04:48.208992',NULL),(7,'DyAvWV4iwYfw5d0pkxow5XqSZiFWw6',7,1,50,'2023-12-27 09:57:02.409629','2023-12-27 09:57:02.409629',NULL),(8,'jGG4QrGOU6TiNXtYO7s8ssceyOcUqX',8,1,50,'2023-12-27 12:16:22.136132','2023-12-27 12:16:22.136132',NULL),(9,'V5MsnIdOlpXVAV2Tmj4pPiHjx3ZJKQ',9,1,50,'2023-12-28 07:01:53.066524','2023-12-28 07:01:53.066524',NULL),(10,'fvSgjxfNGcQhVLs5Sj0MsHPQwlp4Sq',10,1,51,'2023-12-28 07:46:14.084130','2023-12-28 07:46:14.084130',NULL),(11,'V4hvbyfwM6E3qyC9luiJbKKkVGcfH5',11,1,54,'2023-12-28 07:47:46.224380','2023-12-28 07:47:46.224380',NULL),(12,'iqAQDm58SulszlMlC7Wsduo03I4kRZ',12,1,51,'2023-12-28 08:55:50.701552','2023-12-28 08:55:50.701552',NULL),(13,'QIV456RFJGWfwN2KAVLRaHRdKFKpO7',13,1,50,'2023-12-28 09:13:21.821556','2023-12-28 09:13:21.821556',NULL),(14,'OK6oYGxy35LoJt0OMAG147f7hzbTMM',14,1,51,'2023-12-28 10:10:12.408825','2023-12-28 10:10:12.408825',NULL),(15,'VBHpkaQ9ft8NxeP3cLFslkcjRrz6ou',15,1,51,'2023-12-31 05:39:04.840005','2023-12-31 05:39:04.840005',NULL),(16,'NLr8ypCkW7mgnyEHTKzYQcFlbPFjdS',16,1,51,'2023-12-31 06:33:37.032686','2023-12-31 06:33:37.032686',NULL),(17,'iNJmZbbVeVgum0ciqOn5mmahqrpKAa',17,1,51,'2024-01-01 07:43:00.208915','2024-01-01 07:43:00.208915',NULL),(18,'b9bwBpDf1sbUANFeIMQ6sl67Zb7mkw',18,1,51,'2024-01-01 08:44:17.383148','2024-01-01 08:44:17.383148',NULL),(19,'bzdibMYHoFXTgxUt4jH0wmPxEZVi6A',19,1,51,'2024-01-01 11:32:24.238018','2024-01-01 11:32:24.238018',NULL);
+INSERT INTO `oauth2_provider_refreshtoken` VALUES (1,'SjiewMNl9jOeHSnR0Wg2l3fFJHmIUB',1,1,1,'2024-01-02 05:00:14.172646','2024-01-02 05:00:14.172646',NULL),(2,'mUzz5phnz2rncXjNaN2iCM889zVMiZ',2,1,1,'2024-01-02 05:02:36.657547','2024-01-02 05:02:36.657547',NULL);
 /*!40000 ALTER TABLE `oauth2_provider_refreshtoken` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -799,4 +789,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-01-01 18:35:05
+-- Dump completed on 2024-01-02 12:07:06
