@@ -17,7 +17,7 @@ class ASSSAdminSite(admin.AdminSite):
                ] + super().get_urls()
 
     def stats_view(self, request):
-        return TemplateResponse(request, 'admin/stats.html', {
+        return TemplateResponse(request, 'admin/nhap.html', {
             'stats': dao.count_image_by_house(),
             'houses': dao.load_houses(),
             'statsUser': dao.count_user_by_role(),
@@ -25,6 +25,9 @@ class ASSSAdminSite(admin.AdminSite):
             'stats_user_role_by_year': dao.count_user_role_by_year(),
             'stats_user_role_by_month': dao.count_users_each_month_of_the_year(),
             'stats_user_role_by_quarter': dao.count_users_each_quarter_of_the_year(),
+            'count_host': dao.count_host(),
+            'count_user': dao.count_host(),
+
         })
 
 

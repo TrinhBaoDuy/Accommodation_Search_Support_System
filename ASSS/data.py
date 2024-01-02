@@ -1,9 +1,12 @@
+
 import os
+import random
+
 import django
 
 # Thiết lập môi trường Django
 from django.contrib.auth.hashers import make_password
-
+from faker import Faker
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ASSS.settings')
 django.setup()
 
@@ -12,124 +15,53 @@ from ASSSs.models import Role, User, Follow
 
 
 def load_data():
-    roles = ['Admin', 'Host', 'User']
-    for role in roles:
-        Role.objects.get_or_create(rolename=role)
+    genders = [1, 2, 3]
+    fake = Faker()
+    so = 10
+    for i in range(so):
+        gender_user = random.choice(genders)
+        gender_host = random.choice(genders)
+        first_name_user = fake.first_name()
+        last_name_user = fake.last_name()
+        first_name_host = fake.first_name()
+        last_name_host = fake.last_name()
+        email_user = fake.email()
+        email_host = fake.email()
+        address_user = fake.address()
+        address_host = fake.address()
+        dob_user = fake.date_of_birth(minimum_age=18, maximum_age=90)
+        dob_host = fake.date_of_birth(minimum_age=18, maximum_age=90)
+        phone_number_user = '0826523430'
+        phone_number_host = '0388853371'
 
-    users_data = [
-        {
-            'username': 'admin',
-            'first_name': 'John',
-            'last_name': 'Doe',
-            'email': 'john@example.com',
-            'phonenumber': '123456789',
-            'dob': '1990-01-01',
-            'address': '123 Main St',
-            'role': Role.objects.get(rolename='Admin'),
-            'password': make_password('123')
-        },
-        {
-            'username': 'jane_smith',
-            'first_name': 'Jane',
-            'last_name': 'Smith',
-            'email': 'jane@example.com',
-            'phonenumber': '987654321',
-            'dob': '1995-05-10',
-            'address': '456 Elm St',
+        user_data = {
+            'username': 'user'+str(i+10),
+            'password': make_password('123'),
             'role': Role.objects.get(rolename='User'),
-            'password': make_password('123')
-        },
-        {
-            'username': 'host1',
-            'first_name': 'Host',
-            'last_name': 'One',
-            'email': 'host1@example.com',
-            'phonenumber': '111111111',
-            'dob': '1990-01-01',
-            'address': '123 Main St',
+            'gender': gender_user,
+            'first_name': first_name_user,
+            'last_name': last_name_user,
+            'email': email_user,
+            'address': address_user,
+            'dob': dob_user,
+            'phonenumber': phone_number_user
+        }
+
+        host_data = {
+            'username': 'host'+str(i+10),
+            'password': make_password('123'),
             'role': Role.objects.get(rolename='Host'),
-            'password': make_password('123')
-        },
-        {
-            'username': 'host2',
-            'first_name': 'Host',
-            'last_name': 'Two',
-            'email': 'host2@example.com',
-            'phonenumber': '222222222',
-            'dob': '1990-02-02',
-            'address': '456 Elm St',
-            'role': Role.objects.get(rolename='Host'),
-            'password': make_password('123')
-        },
-        {
-            'username': 'host3',
-            'first_name': 'Host',
-            'last_name': 'Three',
-            'email': 'host3@example.com',
-            'phonenumber': '333333333',
-            'dob': '1990-03-03',
-            'address': '789 Oak St',
-            'role': Role.objects.get(rolename='Host'),
-            'password': make_password('123')
-        },
-        {
-            'username': 'user1',
-            'first_name': 'User',
-            'last_name': 'One',
-            'email': 'user1@example.com',
-            'phonenumber': '444444444',
-            'dob': '1995-01-01',
-            'address': '123 Main St',
-            'role': Role.objects.get(rolename='User'),
-            'password': make_password('123')
-        },
-        {
-            'username': 'user2',
-            'first_name': 'User',
-            'last_name': 'Two',
-            'email': 'user2@example.com',
-            'phonenumber': '555555555',
-            'dob': '1995-02-02',
-            'address': '456 Elm St',
-            'role': Role.objects.get(rolename='User'),
-            'password': make_password('123')
-        },
-    ]
+            'gender': gender_host,
+            'first_name': first_name_host,
+            'last_name': last_name_host,
+            'email': email_host,
+            'address': address_host,
+            'dob': dob_host,
+            'phonenumber': phone_number_host
+        }
 
-    account_data_host =[]
-    account_data_user =[]
-    for user_data in users_data:
-        user, created = User.objects.get_or_create(**user_data)
-        if user.role_id == 2:
-            account_data_host.append(user.id)
-            print("host: " + str(user.id))
-        elif user.role_id == 3:
-            account_data_user.append(user.id)
-            print("user: " + str(user.id))
-
-
-    follow_data = [
-        {
-            'follower': User.objects.get(id=account_data_user[0]),
-            'followeduser': User.objects.get(id=account_data_host[0])
-        },
-        {
-            'follower': User.objects.get(id=account_data_user[1]),
-            'followeduser': User.objects.get(id=account_data_host[1])
-        },
-        {
-            'follower': User.objects.get(id=account_data_user[0]),
-            'followeduser': User.objects.get(id=account_data_host[1])
-        },
-        {
-            'follower': User.objects.get(id=account_data_host[2]),
-            'followeduser': User.objects.get(id=account_data_user[0])
-        },
-
-    ]
-
-    for data in follow_data:
-        follow = Follow.objects.create(**data)
+        user = User.objects.create(**user_data)
+        host = User.objects.create(**host_data)
 
 
 if __name__ == '__main__':

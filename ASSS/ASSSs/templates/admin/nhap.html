@@ -96,7 +96,7 @@
 							<div
 								class="d-flex flex-wrap justify-content-between align-items-center pb-0 pb-md-3"
 							>
-								<div class="h5 mb-md-0">User Activities</div>
+								<div class="h5 mb-md-0">User account statistics</div>
 								<div class="form-group mb-md-0">
 									<select class="form-control form-control-sm selectpicker">
 										<option value="">Last Week</option>
@@ -107,65 +107,52 @@
 								</div>
 							</div>
 							<div style="max-height: 500px; overflow: hidden;">
-							  <canvas style="width: 515px; height: 320px;" id="activities-chart"></canvas>
+								<canvas id="myChart" width="400"></canvas>
 							</div>
 						</div>
 					</div>
 					<div class="col-md-4 mb-20">
 						<div
-							class="card-box min-height-200px pd-20 mb-20"
-							data-bgcolor="#455a64"
+							class="card-box min-height-200px pd-20 mb-20" style="background-color:rgb(138 156 135)"
 						>
-							 <div class="table-responsive">
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Role</th>
-          <th>Year</th>
-          <th>Active Users</th>
-          <th>Not Active Users</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for u in stats_user_role_by_year %}
-        <tr>
-          <td>{{ u.role__rolename }}</td>
-          <td>{{ u.year }}</td>
-          <td>{{ u.active_users }}</td>
-          <td>{{ u.not_active_users }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+							<div class="d-flex justify-content-between pb-20 text-white">
+								<div class="icon h1 text-white">
+									<i class="fa fa-calendar" aria-hidden="true"></i>
+									<!-- <i class="icon-copy fa fa-stethoscope" aria-hidden="true"></i> -->
+								</div>
+								<div class="font-14 text-right">
+									<div><i class="icon-copy ion-arrow-up-c"></i>{{count_host.active_percentage}}%</div>
+									<div class="font-12">Percentage of active accounts</div>
+								</div>
 							</div>
 							<div class="d-flex justify-content-between align-items-end">
 								<div class="text-white">
-									<div class="font-14">Appointment</div>
-									<div class="font-24 weight-500">1865</div>
+									<div class="font-14">Account Host</div>
+									<div class="font-24 weight-500">{{count_host.total_hosts}}</div>
 								</div>
 								<div class="max-width-150">
-									<div id="appointment-chart"></div>
+									<canvas id="pieChartH"></canvas>
 								</div>
 							</div>
 						</div>
-						<div class="card-box min-height-200px pd-20" data-bgcolor="#265ed7">
+						<div class="card-box min-height-200px pd-20 mb-20" style="background-color:rgb(166 160 106)">
 							<div class="d-flex justify-content-between pb-20 text-white">
 								<div class="icon h1 text-white">
-									<i class="fa fa-stethoscope" aria-hidden="true"></i>
+									<i class="fa fa-calendar" aria-hidden="true"></i>
+									<!-- <i class="icon-copy fa fa-stethoscope" aria-hidden="true"></i> -->
 								</div>
 								<div class="font-14 text-right">
-									<div><i class="icon-copy ion-arrow-down-c"></i> 3.69%</div>
-									<div class="font-12">Since last month</div>
+									<div><i class="icon-copy ion-arrow-up-c"></i>{{count_host.active_percentage}}%</div>
+									<div class="font-12">Percentage of active accounts</div>
 								</div>
 							</div>
 							<div class="d-flex justify-content-between align-items-end">
 								<div class="text-white">
-									<div class="font-14">Surgery</div>
-									<div class="font-24 weight-500">250</div>
+									<div class="font-14">Account Host</div>
+									<div class="font-24 weight-500">{{count_host.total_hosts}}</div>
 								</div>
 								<div class="max-width-150">
-									<div id="surgery-chart"></div>
+									<canvas id="pieChartU"></canvas>
 								</div>
 							</div>
 						</div>
@@ -768,63 +755,100 @@
 		</div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-let labels = [];
-let activeUsersData = [];
-let notActiveUsersData = [];
+  let labels = [];
+  let activeUsersData = [];
+  let activeHostsData = [];
+  let notactiveUsersData = [];
+  let notactiveHostsData = [];
 
-{% for u in stats_user_role_by_year %}
-  labels.push('{{ u.year }}');
-  activeUsersData.push({{ u.active_users }});
-  notActiveUsersData.push({{ u.not_active_users }});
-{% endfor %}
+  {% for u in stats_user_role_by_month %}
+    labels.push('Tháng'+'{{ u.month }}');
+    activeHostsData.push({{ u.active_users_role_is_host }});
+    activeUsersData.push({{ u.active_users_role_is_user }});
+    notactiveUsersData.push({{ u.not_active_users_role_is_host }});
+    notactiveHostsData.push({{ u.not_active_users_role_is_user }});
+  {% endfor %}
 
-const ctx = document.getElementById('activities-chart').getContext('2d');
-
-new Chart(ctx, {
-  type: 'bar',
-  data: {
-    labels: labels,
-    datasets: [
-      {
-        label: 'Active Users',
-        data: activeUsersData,
-        backgroundColor: 'rgba(75, 192, 192, 0.8)',
-        borderWidth: 1,
-        borderRadius: 5,
+  var ctx = document.getElementById("myChart").getContext('2d');
+  var myChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+          labels:["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+          datasets: [{
+              label: 'Users active account',
+              data: activeUsersData,
+              backgroundColor: 'rgba(255, 75, 9, 1)',
+              borderColor: 'rgba(255, 75, 9, 1)',
+              borderWidth: 1
+          },
+          {
+              label: 'Users active inaccount',
+              data: notactiveUsersData,
+              backgroundColor: 'rgba(54, 162, 235, 1)',
+              borderColor: 'rgba(54, 162, 235, 1)',
+              borderWidth: 1
+          },
+          {
+              label: 'Hosts active account',
+              data: activeHostsData,
+              backgroundColor: 'rgba(5, 54, 77, 1)',
+              borderColor: 'rgba(5, 54, 77, 1)',
+              borderWidth: 1
+          },
+          {
+              label: 'Hosts active inaccount',
+              data: notactiveHostsData,
+              backgroundColor: 'rgba(18, 145, 51, 1)',
+              borderColor: 'rgba(18, 145, 51, 1)',
+              borderWidth: 1
+          }]
       },
-      {
-        label: 'Not Active Users',
-        data: notActiveUsersData,
-        backgroundColor: 'rgba(255, 99, 132, 0.8)',
-        borderWidth: 1,
-        borderRadius: 5,
-      },
-    ],
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-     scales: {
-      x: {
-        grid: {
-          display: false,
-        },
-      },
-      y: {
-        beginAtZero: true,
-        ticks: {
-          precision: 0,
-        },
-      },
-    },
-    plugins: {
-      legend: {
-        display: true,
-        position: 'top',
-      },
-    },
-  },
-});
+      options: {
+          scales: {
+              yAxes: [{
+                  ticks: {
+                      beginAtZero:true
+                  }
+              }]
+          }
+      }
+  });
 </script>
+<script>
+    window.onload = () => {
+      const ctxH = document.getElementById('pieChartH');
+	  const ctxU = document.getElementById('pieChartU');
+      new Chart(ctxH, {
+        type: 'pie',
+        data: {
+          labels: ['active','inactive'],
+          datasets: [{
+            label: 'Host',
+            data: ['{{count_host.active_hosts}}','{{count_host.not_active_hosts}}'],
+            borderWidth: 1,
+            backgroundColor: [
+              'rgb(255, 99, 132)',
+              'rgb(54, 162, 235)',
+            ]
+          }]
+        },
+      });
 
+      new Chart(ctxU, {
+        type: 'pie',
+        data: {
+          labels: ['active','inactive'],
+          datasets: [{
+            label: 'User',
+            data: ['{{count_user.active_users}}','{{count_user.not_active_users}}'],
+            borderWidth: 1,
+            backgroundColor: [
+              'rgb(255, 99, 132)',
+              'rgb(54, 162, 235)',
+            ]
+          }]
+        },
+      });
+    }
+</script>
 {% endblock %}

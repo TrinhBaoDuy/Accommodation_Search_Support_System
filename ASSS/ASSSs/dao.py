@@ -23,6 +23,34 @@ def count_user_by_role():
     return Role.objects.exclude(rolename='ADMIN').annotate(count_users=Count('users')).values("rolename", "count_users").order_by('count_users')
 
 
+def count_host():
+    total_hosts = User.objects.filter(role__rolename='Host').count()
+    active_hosts = User.objects.filter(role__rolename='Host', active=True).count()
+    not_active_hosts = total_hosts - active_hosts
+    active_percentage = (active_hosts / total_hosts) * 100 if total_hosts > 0 else 0
+
+    return {
+        'total_hosts': total_hosts,
+        'active_hosts': active_hosts,
+        'not_active_hosts': not_active_hosts,
+        'active_percentage': active_percentage,
+    }
+
+
+def count_user():
+    total_users = User.objects.filter(role__rolename='User').count()
+    active_users = User.objects.filter(role__rolename='User', active=True).count()
+    not_active_users = total_users - active_users
+    active_percentage = (active_users / total_users) * 100 if total_users > 0 else 0
+
+    return {
+        'total_users': total_users,
+        'active_users': active_users,
+        'not_active_users': not_active_users,
+        'active_percentage': active_percentage,
+    }
+
+
 def load_user(params={}):
     h = User.objects.all()
 
@@ -71,7 +99,7 @@ def count_user_role_by_year(params={}):
 
 def count_users_each_month_of_the_year(params={}):
     # year = params.get('year')
-    year = '2023'
+    year = '2024'
     months = range(1, 13)
     user_count_by_role_and_year = (
         User.objects.filter(created_date__year=year)

@@ -466,7 +466,7 @@ class PostingPriceViewSet(viewsets.ModelViewSet):
 
 
 class UserViewSet(viewsets.ViewSet):
-    queryset = User.objects.filter(is_active=True).all()
+    queryset = User.objects.filter(active=True).all()
     serializer_class = serializers.UserSerializer
     pagination_class = paginators.ASSSPaginator
     parser_classes = [parsers.MultiPartParser]
@@ -520,6 +520,28 @@ class UserViewSet(viewsets.ViewSet):
 
         serializer = serializers.UserSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        operation_description="Delete a user by ID",
+        responses={
+            200: openapi.Response(
+                description="User delete successfully",
+                schema=serializers.UserSerializer
+            ),
+            404: openapi.Response(
+                description="User not found"
+            )
+        }
+    )
+    @action(methods=['post'], url_name='delete', detail=True)
+    def delete_user_by_id(self, request, pk=None):
+        try:
+            user = self.queryset.get(pk=pk)
+        except User.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        user.delete(),
+        return Response('Delete successfully', status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
         operation_description="Get the current user",
