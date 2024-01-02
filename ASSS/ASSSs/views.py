@@ -500,6 +500,28 @@ class UserViewSet(viewsets.ViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
+        operation_description="Retrieve a user by ID",
+        responses={
+            200: openapi.Response(
+                description="User retrieved successfully",
+                schema=serializers.UserSerializer
+            ),
+            404: openapi.Response(
+                description="User not found"
+            )
+        }
+    )
+    @action(methods=['get'], url_name='get-user', detail=True)
+    def get_user_by_id(self, request, pk=None):
+        try:
+            user = self.queryset.get(pk=pk)
+        except User.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        serializer = serializers.UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
         operation_description="Get the current user",
         manual_parameters=[
             openapi.Parameter(
