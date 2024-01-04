@@ -13,6 +13,8 @@ router.register('bookings', views.BookingViewSet, basename='bookings')
 router.register('follows', views.FollowViewSet, basename='follows')
 router.register('roles', views.RoleViewSet, basename='roles')
 router.register('comments', views.CommentViewSet, basename='comments')
+router.register('typepayments', views.TypePaymentViewSet, basename='typepayments')
+router.register('payments', views.PaymentViewSet, basename='payments')
 urlpatterns = [
     path('', include(router.urls))
 ]

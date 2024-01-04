@@ -1,12 +1,15 @@
+import os
 from threading import activeCount
 
+from cloudinary.provisioning import user
 from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action, permission_classes
+from twilio.rest.voice.v1.dialing_permissions import settings
 from ASSSs import serializers, paginators
-from ASSSs.models import House, Image, Post, Discount, PostingPrice, User, Follow, Booking, Role, Comment
+from ASSSs.models import *
 from rest_framework import viewsets, generics, status, permissions, parsers
 from rest_framework.response import Response
 from rest_framework.authentication import SessionAuthentication
@@ -675,7 +678,7 @@ class UserViewSet(viewsets.ViewSet):
             openapi.Parameter(
                 name="phone_number",
                 in_=openapi.IN_FORM,
-                type=openapi.TYPE_NUMBER,
+                type=openapi.TYPE_STRING,
                 description="phone_number",
                 required=True,
             )
@@ -689,41 +692,27 @@ class UserViewSet(viewsets.ViewSet):
             ),
         }
     )
-    @action(methods=['post'], url_path='send-OTP-forgot-password', detail=False)
-    def forgot_password(self, request):
+    @action(methods=['post'], url_path='Send-OTP-forgot-password', detail=False)
+    def send_otp(self, request):
         phone_number = request.data.get('phone_number')
         Country_Code='+84'
-        try:
-            user = User.objects.get(phonenumber=phone_number)
-        except User.DoesNotExist:
-            return Response("User with this phone number does not exist.", status=status.HTTP_400_BAD_REQUEST)
+        # u = User.objects.get(phonenumber=phone_number).all()
+        # if not u:
+        #     return Response("User with this phone number does not exist.", status=status.HTTP_400_BAD_REQUEST)
 
-        digits = "0123456789"
-        otp = ""
-        for i in range(6):
-            otp += random.choice(digits)
-
-        # Gửi tin nhắn SMS chứa hướng dẫn đặt lại mật khẩu
         account_sid = 'AC1c77c96392cffe33999c3ca1b6635e7d'
-        auth_token = '474fe6134a659fef4dadf1fed37425c7'
+        auth_token = '9c0b3886628acfc7b43211977821f689'
         from_number = '+17247172226'
+        verify_sid = 'VAa304166947e6f8856eb337621447985b'
 
         client = Client(account_sid, auth_token)
 
-        message = client.messages.create(
-            body=f"Please use the following OTP for verification: {otp}. This OTP will expire in 60 seconds. Please do not share this OTP with anyone. Thank you.",
-            from_=from_number,
-            to=Country_Code+phone_number
-        )
+        message_otp = client.verify.services(verify_sid).verifications.create(to=from_number, channel="sms")
+        if message_otp.status == "pending":
+            return Response("SEND OTP OK", status=status.HTTP_200_OK)
+        else:
+            return Response("SEND OTP FALSE", status=status.HTTP_400_BAD_REQUEST)
 
-        # Lưu OTP và số điện thoại vào session
-        request.session['phone_number'] = phone_number
-        request.session['otp'] = otp
-        request.session['otp_timestamp'] = datetime.datetime.now()
-        request.session.modified = True
-
-        # Chuyển hướng đến endpoint reset-password với OTP và số điện thoại
-        return HttpResponseRedirect('/check-OTP-change-forgot-password')
 
     @swagger_auto_schema(
         operation_description="Check OTP And Change password",
@@ -733,6 +722,13 @@ class UserViewSet(viewsets.ViewSet):
                 in_=openapi.IN_FORM,
                 type=openapi.TYPE_NUMBER,
                 description="Enter the OTP just notified in SMS",
+                required=True,
+            ),
+            openapi.Parameter(
+                name="phone_number",
+                in_=openapi.IN_FORM,
+                type=openapi.TYPE_STRING,
+                description="phone_number",
                 required=True,
             ),
             openapi.Parameter(
@@ -754,40 +750,161 @@ class UserViewSet(viewsets.ViewSet):
     )
     @action(methods=['post'], url_path='check-OTP-change-forgot-password', detail=False)
     def check_OTP_change_forgot_password(self, request):
-        phone_number = request.session.get('phone_number')
-        otp = request.session.get('otp')
+        phone_number = request.data.get('phone_number')
         otp_check = request.data.get('otp_check')
         new_password = request.data.get('new_password')
-        timestamp = request.session.get('otp_timestamp')
 
-        if not phone_number or not otp:
-            return Response("OTP expired or invalid.", status=status.HTTP_400_BAD_REQUEST)
+        if not phone_number or not otp_check:
+            return Response("Viet do di ba", status=status.HTTP_400_BAD_REQUEST)
+
+        # u = User.objects.get(phonenumber=phone_number).all()
+        # if not u:
+        #     return Response("User with this phone number does not exist.", status=status.HTTP_400_BAD_REQUEST)
+
+        account_sid = 'AC1c77c96392cffe33999c3ca1b6635e7d'
+        auth_token = '9c0b3886628acfc7b43211977821f689'
+        from_number = '+17247172226'
+        verify_sid = 'VAa304166947e6f8856eb337621447985b'
+
+        client = Client(account_sid, auth_token)
+
+        check_otp = client.verify.services(verify_sid).verification_checks.create(to=from_number, code=otp_check)
+
+        if check_otp.status == "approved":
+            user.set_password(new_password)
+            user.save()
+            return Response("Password reset successful.", status=status.HTTP_200_OK)
+        else:
+            return Response("OTP Wrong . Enter your OTP again", status=status.HTTP_400_BAD_REQUEST)
+
+
+
+    # @swagger_auto_schema(
+    #     operation_description="Upgrade Account",
+    #     manual_parameters=[
+    #         openapi.Parameter(
+    #             name="Authorization",
+    #             in_=openapi.IN_HEADER,
+    #             type=openapi.TYPE_STRING,
+    #             description="Bearer token",
+    #             required=True,
+    #             default="Bearer your_token_here"
+    #         ),
+    #     ],
+    #     responses={
+    #         200: openapi.Response(
+    #             description="successfully",
+    #             schema=serializers.UserSerializer
+    #         ),
+    #         400: openapi.Response(
+    #             description="Bad request"
+    #         )
+    #     }
+    # )
+    # @action(methods=['post'], url_name='upgrade-account-sendOTP', detail=False)
+    # def upgrade_account_sendOTP(self, request):
+    #     user = request.user
+    #     print(int(user.phonenumber))
+    #     if user.role.id == 2:
+    #         return Response("Your Account did Upgrade", status=status.HTTP_400_BAD_REQUEST)
+    #
+    #     phone_number = int(user.phonenumber)
+    #     Country_Code='+84'
+    #
+    #     try:
+    #         user = User.objects.get(phonenumber=phone_number,pk=user.id)
+    #     except User.DoesNotExist:
+    #         return Response("User with this phone number does not exist.", status=status.HTTP_400_BAD_REQUEST)
+    #
+    #     digits = "0123456789"
+    #     otp = ""
+    #     for i in range(6):
+    #         otp += random.choice(digits)
+    #
+    #     # Gửi tin nhắn SMS chứa hướng dẫn đặt lại mật khẩu
+    #     # account_sid = 'AC1c77c96392cffe33999c3ca1b6635e7d'
+    #     # auth_token = '9c0b3886628acfc7b43211977821f689'
+    #     # from_number = '+17247172226'
+    #
+    #     client = Client(account_sid, auth_token)
+    #
+    #     message = client.messages.create(
+    #         body=f"Please use the following OTP for verification: {otp}. This OTP will expire in 60 seconds. Please do not share this OTP with anyone. Thank you.",
+    #         from_=from_number,
+    #         to=Country_Code+str(phone_number)
+    #     )
+    #
+    #     print(otp)
+    #
+    #     # Lưu OTP và số điện thoại vào session
+    #     request.session['phone_number-up'] = str(phone_number)
+    #     request.session['otp-up'] = otp
+    #     request.session['otp_timestamp-up'] = datetime.datetime.now()
+    #     request.session.modified = True
+    #
+    #     return Response("SEND OTP.", status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        operation_description="Check OTP And Change password",
+        manual_parameters=[
+            openapi.Parameter(
+                name="Authorization",
+                in_=openapi.IN_HEADER,
+                type=openapi.TYPE_STRING,
+                description="Bearer token",
+                required=True,
+                default="Bearer your_token_here"
+            ),
+            openapi.Parameter(
+                name="otp_check",
+                in_=openapi.TYPE_STRING,
+                type=openapi.TYPE_NUMBER,
+                description="Enter the OTP just notified in SMS",
+                required=True,
+            ),
+        ],
+        responses={
+            200: openapi.Response(
+                description="SMS sent with password reset instructions",
+            ),
+            400: openapi.Response(
+                description="User with this phone number does not exist",
+            ),
+        }
+    )
+    @action(methods=['post'], url_path='check-OTP-upgrade-account', detail=False)
+    def check_OTP_upgrade_account(self, request):
+        otp_check = request.data.get('otp_check')
+        user = request.user
+        phonenumbers = str(int(user.phonenumber))
+
+
+        account_sid = 'AC1c77c96392cffe33999c3ca1b6635e7d'
+        auth_token = '9c0b3886628acfc7b43211977821f689'
+        from_number = '+17247172226'
+
+        VERYFICATION_SID_SERVICE = settings.TWILIO_VERIFICATION_SERVICE_SID
+
+        client = Client(account_sid, auth_token)
 
         try:
-            user = User.objects.get(phonenumber=phone_number)
-        except User.DoesNotExist:
-            return Response("User with this phone number does not exist.", status=status.HTTP_400_BAD_REQUEST)
+            verification_check = client.verify \
+                .services(VERYFICATION_SID_SERVICE) \
+                .verification_checks \
+                .create(to=phonenumbers, code=otp_check)
 
-        # Kiểm tra tính hợp lệ của OTP
-        if not otp == otp_check:
-            return Response("Invalid OTP.", status=status.HTTP_400_BAD_REQUEST)
+            auth = verification_check.status == 'approved'
 
-        # Kiểm tra hiệu lực của OTP
-        current_time = datetime.datetime.now()
-        time_diff = current_time - timestamp
-        if time_diff.seconds > 60:  # Kiểm tra nếu đã qua hơn 1 phút
-            return Response("OTP expired.", status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(e)
 
-        # Đặt lại mật khẩu của người dùng
-        user.set_password(new_password)
-        user.save()
+        if auth:
+            user.role = 2
+            user.save()
 
-        # Xóa OTP và số điện thoại khỏi session
-        del request.session['phone_number']
-        del request.session['otp']
-        request.session.modified = True
-
-        return Response("Password reset successful.", status=status.HTTP_200_OK)
+            return Response("Upgrade Account successful.", status=status.HTTP_200_OK)
+        else:
+            return Response("Check OTP False", status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
         operation_description="Update Avatar",
@@ -1259,3 +1376,123 @@ class RoleViewSet(viewsets.ViewSet):
         queryset = self.queryset
         serializer = self.serializer_class(queryset, many=True)
         return Response(serializer.data)
+
+
+class TypePaymentViewSet(viewsets.ViewSet):
+    queryset = TypePayment.objects.all()
+    serializer_class = serializers.TypePaymentSerializerShow
+    pagination_class = paginators.ASSSPaginator
+    # swagger_schema = None
+
+    def list(self, request):
+        queryset = self.queryset
+        serializer = self.serializer_class(queryset, many=True)
+        return Response(serializer.data)
+
+
+class PaymentViewSet(viewsets.ViewSet):
+    queryset = Payment.objects.filter(active=True).all()
+    serializer_class = serializers.PaymentSerializer
+    pagination_class = paginators.ASSSPaginator
+    # swagger_schema = None
+
+    @swagger_auto_schema(
+        operation_description="List Payment History",
+        manual_parameters=[
+            openapi.Parameter(
+                name="Authorization",
+                in_=openapi.IN_HEADER,
+                type=openapi.TYPE_STRING,
+                description="Bearer token",
+                required=True,
+                default="Bearer your_token_here"
+            ),
+        ],
+        responses={
+            200: openapi.Response(
+                description="Successfully",
+                schema=serializers.BookingSerializer
+            ),
+            404: openapi.Response(
+                description="Not Found"
+            )
+        }
+    )
+    @action(methods=['get'], url_name='list-payment-of-user', detail=False)
+    def list_payment_of_user(self, request):
+        user = request.user
+        payments = self.queryset.filter(booking__user=user).all()
+
+        if not payments:
+            return Response("The payments do not exist.", status=status.HTTP_404_NOT_FOUND)
+
+        serializer = serializers.PaymentSerializerShow(payments, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        operation_description="List Payment History",
+        manual_parameters=[
+            openapi.Parameter(
+                name="Authorization",
+                in_=openapi.IN_HEADER,
+                type=openapi.TYPE_STRING,
+                description="Bearer token",
+                required=True,
+                default="Bearer your_token_here"
+            ),
+        ],
+        responses={
+            200: openapi.Response(
+                description="Successfully",
+                schema=serializers.BookingSerializer
+            ),
+            404: openapi.Response(
+                description="Not Found"
+            )
+        }
+    )
+    @action(methods=['get'], url_name='list-payment-of-host', detail=False)
+    def list_payment_of_host(self, request):
+        user = request.user
+        payments = self.queryset.filter(booking__post__user=user).all()
+
+        if not payments:
+            return Response("The payments do not exist.", status=status.HTTP_404_NOT_FOUND)
+
+        serializer = serializers.PaymentSerializerShow(payments, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        operation_description="Create Payment",
+        request_body=serializer_class,
+        responses={
+            200: openapi.Response(
+                description="Successfully",
+            ),
+            400: openapi.Response(
+                description="Bad request",
+            ),
+        }
+    )
+    @action(methods=['post'], detail=False, url_path='create-payment')
+    def create_payment(self, request):
+
+        booking_id = request.data.get('booking')
+        type_payment = request.data.get('typepayment')
+
+        booking = Booking.objects.filter(id=booking_id).first()
+        typepayment = TypePayment.objects.filter(id=type_payment).first()
+
+        if not typepayment:
+            return Response("This Type Payment does not exist.", status=status.HTTP_404_NOT_FOUND)
+
+        if not booking:
+            return Response("This Booking does not exist.", status=status.HTTP_404_NOT_FOUND)
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response("Created successfully.", status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+

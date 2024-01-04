@@ -1,7 +1,7 @@
 import datetime
 from urllib.parse import urljoin
 
-from ASSSs.models import House , Image, Post, Discount, PostingPrice, User, Follow, Booking, Role, Comment
+from ASSSs.models import *
 from rest_framework import serializers
 
 
@@ -24,15 +24,15 @@ class ImageSerializer(serializers.ModelSerializer):
 
 
 class ImageSerializerShow(serializers.ModelSerializer):
-    house = HouseSerializer()
+    # house = HouseSerializer()
 
     class Meta:
         model = Image
-        fields = '__all__'
+        fields = ('id', 'imageURL', 'house')
 
     def get_image_url(self, image):
-        base_url = 'https://res.cloudinary.com/dyfzuigha/'
-        if image.imageURL and base_url not in urljoin(base_url, image.imageURL):
+        base_url = 'https://res.cloudinary.com/dstqvlt8d/'
+        if image.imageURL and base_url not in urljoin(base_url, image.imageURL.url):
             return image.imageURL.url
 
     imageURL = serializers.SerializerMethodField(method_name='get_image_url')
@@ -67,7 +67,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     avatar = serializers.SerializerMethodField(method_name='get_avatar_url')
 
-    def create_user(self, validated_data):
+    def create(self, validated_data):
         data = validated_data.copy()
         user = User.objects.create(**data)
         user.set_password(validated_data.get('password'))
@@ -141,7 +141,6 @@ class BookingSerializer(serializers.ModelSerializer):
         return booking
 
 
-
 class BookingSerializerShow(serializers.ModelSerializer):
     post = PostSerializerShow()
     user = UserSerializer()
@@ -176,3 +175,31 @@ class CommentSerializerShow(serializers.ModelSerializer):
         model = Comment
         fields = '__all__'
 
+
+class TypePaymentSerializerShow(serializers.ModelSerializer):
+    class Meta:
+        model = TypePayment
+        fields = '__all__'
+
+
+class PaymentSerializerShow(serializers.ModelSerializer):
+    booking = BookingSerializerShow()
+    typepayment = TypePaymentSerializerShow()
+
+    class Meta:
+        model = Payment
+        fields = '__all__'
+
+
+class PaymentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Payment
+        fields = ('id', 'booking', 'typepayment')
+
+    def create(self, validated_data):
+        data = validated_data.copy()
+        payment = Payment.objects.create(**data)
+        payment.total = payment.booking.post.house.price + payment.booking.post.postingprice.value
+        payment.save()
+        return payment

@@ -13,22 +13,36 @@ class ASSSAdminSite(admin.AdminSite):
 
     def get_urls(self):
         return [
-                   path('ASSS-stats/', self.stats_view)
+                   path('ASSS-stats/', self.stats_view),
+                   path('ASSS-nhap/', self.nhap)
                ] + super().get_urls()
 
     def stats_view(self, request):
+        print(request.GET.get('selected_year', ''))
         return TemplateResponse(request, 'admin/nhap.html', {
             'stats': dao.count_image_by_house(),
             'houses': dao.load_houses(),
             'statsUser': dao.count_user_by_role(),
             'users': dao.load_user(),
-            'stats_user_role_by_year': dao.count_user_role_by_year(),
-            'stats_user_role_by_month': dao.count_users_each_month_of_the_year(),
-            'stats_user_role_by_quarter': dao.count_users_each_quarter_of_the_year(),
+            'stats_user_role_by_year': dao.count_user_role_by_year(request.GET),
+            'stats_user_role_by_month': dao.count_users_each_month_of_the_year(request.GET),
+            'stats_user_role_by_quarter': dao.count_users_each_quarter_of_the_year(request.GET),
             'count_host': dao.count_host(),
             'count_user': dao.count_user(),
-
+            'count_info_sys': dao.count_infor_system(),
+            'top_hosts': dao.top_hosts_post_a_lot(),
+            'hot_hots': dao.top_hosts_follower_a_lot(),
+            'count_post': dao.count_post(),
+            'year_data': dao.get_year(),
+            'statistics_type': request.GET.get('statistics_type', 'Statistics_month'),
+            'selected_year': request.GET.get('selected_year', '2024'),
         })
+
+    def nhap(self, request):
+        return TemplateResponse(request, 'admin/stats.html', {
+            'top_hosts': dao.top_hosts_post_a_lot(),
+        })
+
 
 
 

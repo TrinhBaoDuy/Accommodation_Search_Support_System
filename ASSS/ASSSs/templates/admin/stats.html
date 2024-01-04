@@ -18,13 +18,11 @@
         </tr>
       </thead>
       <tbody>
-        {% for u in stats_user_role_by_year %}
+        {% for u in top_hosts %}
         <tr>
-          <td>{{ u.year }}</td>
-          <td>{{ u.active_users_role_is_host }}</td>
-          <td>{{ u.not_active_users_role_is_host }}</td>
-          <td>{{ u.active_users_role_is_user }}</td>
-          <td>{{ u.not_active_users_role_is_user }}</td>
+          <td>{{ u.id }}-{{ u.user.id }}</td>
+          <td>{{ u.avg }}</td>
+
         </tr>
         {% endfor %}
       </tbody>
@@ -32,43 +30,7 @@
   </div>
 
 
-<canvas id="myChart"></canvas>
+<!--<canvas id="myChart"></canvas>-->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    let labels = [];
-    let values = [];
-
-    {% for c in stats %}
-    values.push({{ c.count }})
-    labels.push('{{ c.name }}')
-    {% endfor %}
-
-    window.onload = () => {
-        const ctx = document.getElementById('myChart');
-
-      new Chart(ctx, {
-        type: 'pie',
-        data: {
-              labels: ['ghfhgfgf','bbbbbbbbb'],
-          datasets: [{
-            label: '# So luong',
-            data: ['3','6'],
-            borderWidth: 1,
-            backgroundColor: [
-              'rgb(255, 99, 132)',
-              'rgb(54, 162, 235)',
-            ]
-          }]
-        },
-        options: {
-          scales: {
-            y: {
-              beginAtZero: true
-            }
-          }
-        }
-      });
-    }
-</script>
 
 {% endblock %}

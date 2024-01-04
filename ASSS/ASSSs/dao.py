@@ -1,8 +1,9 @@
+import dataclasses
 import datetime
 
 from django.db.models.functions import ExtractYear, ExtractMonth
-from .models import House, User, Role
-from django.db.models import Count, Q, Case, When, IntegerField
+from ASSSs.models import *
+from django.db.models import Count, Q, Case, When, IntegerField, Min, Avg
 
 
 def load_houses(params={}):
@@ -21,6 +22,26 @@ def count_image_by_house():
 
 def count_user_by_role():
     return Role.objects.exclude(rolename='ADMIN').annotate(count_users=Count('users')).values("rolename", "count_users").order_by('count_users')
+
+
+def count_infor_system():
+    year = datetime.datetime.now().year
+    past_year = year-1
+    total_account = User.objects.filter(active=True).count()
+    total_post = Post.objects.filter( active=True, created_date__year=year).count()
+    total_price = 32000000
+    total_account_previous_year = User.objects.filter(created_date__year=past_year, active=True).count()
+    total_account_now_year = User.objects.filter(created_date__year=year, active=True).count()
+    growth_rate = ((total_account_now_year*100) / (total_account_previous_year+total_account_now_year))
+
+    return {
+        'year': year,
+        'past_year':  past_year,
+        'total_account': total_account,
+        'total_post': total_post,
+        'total_price': "${:,.0f}".format(total_price),
+        'growth_rate': round(growth_rate)
+    }
 
 
 def count_host():
@@ -51,6 +72,75 @@ def count_user():
     }
 
 
+def count_post():
+    year = datetime.datetime.now().year
+    part_year = year-1
+    count_post_year = Post.objects.filter(active=True,created_date__year=year).count()
+    count_post_part_year = Post.objects.filter(active=True,created_date__year=part_year).count()
+    return {
+        'count_post_year': count_post_year,
+        'count_post_part_year': count_post_part_year,
+        'year': year,
+        'part_year': part_year
+    }
+
+
+def get_year():
+    year = datetime.datetime.now().year
+    first_year = earliest_year = User.objects.aggregate(earliest_year=Min('created_date__year'))['earliest_year']
+
+    year_data = []
+    for y in range(year, first_year - 1, -1):
+        year_data.append(y)
+
+    return year_data
+
+
+def top_hosts_post_a_lot():
+    list_infor = []
+    year = datetime.datetime.now().year
+    top_hosts = User.objects.filter(role__rolename='Host', posts__active=True, posts__created_date__year=year).annotate(post_count=Count('posts')).order_by('-post_count')[:3]
+    for u in top_hosts:
+        list_posts = Post.objects.filter(user=u).all()
+        count = 0
+        point = 0
+        for p in list_posts:
+            list_booking = Booking.objects.filter(post=p).all()
+            for b in list_booking:
+                list_rating = Rating.objects.filter(booking=b).all()
+                for r in list_rating:
+                    point += r.point
+                    count += 1
+        if count == 0:
+            count = 1
+        point = point/count
+        list_infor.append({'id': u.id, 'avg': point,'user':u})
+
+    return list_infor
+
+
+def top_hosts_follower_a_lot():
+    list_infor = []
+    top_hosts = User.objects.filter(role__rolename='Host', followers__active=True).annotate(followers_number=Count('followers')).order_by('-followers_number')[:3]
+    for u in top_hosts:
+        list_posts = Post.objects.filter(user=u).all()
+        count = 0
+        point = 0
+        for p in list_posts:
+            list_booking = Booking.objects.filter(post=p).all()
+            for b in list_booking:
+                list_rating = Rating.objects.filter(booking=b).all()
+                for r in list_rating:
+                    point += r.point
+                    count += 1
+        if count == 0:
+            count = 1
+        point = point/count
+        list_infor.append({'id': u.id, 'avg': point,'user':u})
+
+    return list_infor
+
+
 def load_user(params={}):
     h = User.objects.all()
 
@@ -62,8 +152,12 @@ def load_user(params={}):
 
 
 def count_user_role_by_year(params={}):
+    past_year = params.get('selected_year')
+    print('--------------MMMMMMMMMMMMMMM--------------')
+    print(past_year)
+    if not past_year:
+        past_year = '2020'
     current_year = datetime.datetime.now().year
-    past_year = '2020'
     all_years = list(range(int(past_year), int(current_year) + 1))
 
     user_count_by_role_and_year = (
@@ -98,8 +192,11 @@ def count_user_role_by_year(params={}):
 
 
 def count_users_each_month_of_the_year(params={}):
-    # year = params.get('year')
-    year = '2024'
+    year = params.get('selected_year')
+    print('--------------MMMMMMMMMMMMMMM--------------')
+    print(year)
+    if not year:
+        year = datetime.datetime.now().year
     months = range(1, 13)
     user_count_by_role_and_year = (
         User.objects.filter(created_date__year=year)
@@ -130,12 +227,15 @@ def count_users_each_month_of_the_year(params={}):
 
 
 def count_users_each_quarter_of_the_year(params={}):
-    # year = params.get('year')
-    year = '2023'
+    year = params.get('selected_year')
+    print('--------------QQQQQQQQQQQQQQ--------------')
+    print(year)
+    if not year:
+        year = datetime.datetime.now().year
     quarters = [1, 2, 3, 4]  # Danh sách các quý
     result = []
-    month_params = {'year': year}
-    month_result = count_users_each_month_of_the_year(month_params)
+    year_params = {'selected_year': year}
+    month_result = count_users_each_month_of_the_year(year_params)
     for quarter in quarters:
         quarter_data = {
             'quarter': quarter,
@@ -148,11 +248,13 @@ def count_users_each_quarter_of_the_year(params={}):
         for month_data in month_result:
             month = month_data['month']
             if month // 4 + 1 == quarter:
-                quarter_data['quarter'] = "Quý "+str(month // 4 + 1)
+                quarter_data['quarter'] = "Quarter "+str(month // 4 + 1)
                 quarter_data['active_users_role_is_host'] += month_data['active_users_role_is_host']
                 quarter_data['not_active_users_role_is_host'] += month_data['not_active_users_role_is_host']
                 quarter_data['active_users_role_is_user'] += month_data['active_users_role_is_user']
                 quarter_data['not_active_users_role_is_user'] += month_data['not_active_users_role_is_user']
         result.append(quarter_data)
 
+    print('--------------MMMMMMMMMMMMMMMMMMMMMMMM---RRRRRRRRRRRRRRRRRRRR-----------')
+    print(result)
     return result

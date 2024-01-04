@@ -32,6 +32,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'fontawesomefree',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -46,6 +47,7 @@ INSTALLED_APPS = [
     'cloudinary',
     'drf_yasg',
     'corsheaders',
+
 ]
 
 import pymysql
@@ -173,3 +175,8 @@ INTERNAL_IPS = [
 CLIENT_ID = 'UXTi69lodcxqmENTZITNy3e0EHIJ64UzUqnb9Hu4'
 CLIENT_SECRET = 'oIulUY0kY7FIYDIjCmzUlKi3u6lHhCmdVYAJxLaEzJpmX3hnZH51uyhTeMbhmRIJk0fUPFMiUggebg2JkxwFviYBPK9bejcaxlyK67GImarvBjGUCeD5rrL9O0EnrH38'
 CODE_TWILLO = 'SBUJZ9X1Q1GJ5GAX1X9MMM94'
+# settings.py
+
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+]

@@ -118,4 +118,30 @@ class Booking(BaseModel):
     status = models.IntegerField()
 
     def __str__(self):
-        return f"ID: {self.id}, Booking Date: {self.bookingdate}, User: {self.user}, Post: {self.post}, Status: {self.status}"
+        return f"ID: {self.id}, User: {self.user}, Post: {self.post}, Status: {self.status}"
+
+
+class TypePayment(BaseModel):
+    name = models.CharField(max_length=100, null=False)
+
+    def __str__(self):
+        return f"ID: {self.id}, typepayment: {self.name}"
+
+
+class Payment(BaseModel):
+    booking = models.ForeignKey(Booking, on_delete=models.CASCADE, related_query_name="payments")
+    total = models.FloatField(default=0)
+    typepayment = models.ForeignKey(TypePayment, on_delete=models.SET_NULL, related_query_name="payments", null=True)
+
+    def __str__(self):
+        return f"ID: {self.id}, Booking: {self.booking},total: {self.total}, Type Payment: {self.typepayment}"
+
+
+class Rating(BaseModel):
+    booking = models.ForeignKey(Booking, on_delete=models.CASCADE, related_query_name="ratings")
+    point = models.IntegerField()
+    value = models.CharField(max_length=1000, null=False)
+
+    def __str__(self):
+        return f"ID: {self.id}, Booking: {self.booking},Point: {self.point}, Value: {self.value}"
+
