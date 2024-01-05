@@ -24,7 +24,7 @@ class ImageSerializer(serializers.ModelSerializer):
 
 
 class ImageSerializerShow(serializers.ModelSerializer):
-    # house = HouseSerializer()
+    house = HouseSerializer()
 
     class Meta:
         model = Image
@@ -78,6 +78,12 @@ class UserSerializer(serializers.ModelSerializer):
         user.avatar = new_avatar
         user.save()
         return user.avatar
+
+    def chang_pass(self, user, password):
+        user.set_password(password)
+        user.save()
+        breakpoint()
+        return user
 
 
 class FollowSerializer(serializers.ModelSerializer):

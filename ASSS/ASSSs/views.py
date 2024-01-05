@@ -1,5 +1,4 @@
 import os
-from threading import activeCount
 
 from cloudinary.provisioning import user
 from django.http import Http404, HttpResponseRedirect
@@ -7,19 +6,16 @@ from django.shortcuts import get_object_or_404
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action, permission_classes
+from twilio.rest.microvisor.v1 import app
 from twilio.rest.voice.v1.dialing_permissions import settings
+from twilio.twiml.voice_response import VoiceResponse, Say
+# from flask import Flask
 from ASSSs import serializers, paginators
 from ASSSs.models import *
 from rest_framework import viewsets, generics, status, permissions, parsers
 from rest_framework.response import Response
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes, force_str
-from django.core.mail import send_mail
-from django.contrib.sites.shortcuts import get_current_site
-from django.template.loader import render_to_string
 from twilio.rest import Client
 import random
 import datetime
@@ -162,14 +158,10 @@ class ImageViewSet(viewsets.ViewSet):
 
         return Response(serializers.ImageSerializer().data, status=status.HTTP_200_OK)
 
-    def get_queryset(self):
-        queries = self.queryset
-
-        q = self.request.query_params.get("houseID")
-        if q:
-            queries = queries.filter(house__id=q)
-
-        return queries
+    def list(self, request):
+        queryset = self.queryset
+        serializer = serializers.ImageSerializerShow(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class PostViewSet(viewsets.ViewSet):
@@ -701,18 +693,19 @@ class UserViewSet(viewsets.ViewSet):
         #     return Response("User with this phone number does not exist.", status=status.HTTP_400_BAD_REQUEST)
 
         account_sid = 'AC1c77c96392cffe33999c3ca1b6635e7d'
-        auth_token = '9c0b3886628acfc7b43211977821f689'
+        auth_token = '7f0a1758e5a37d3bf2bcb2b9a5aa8158'
         from_number = '+17247172226'
         verify_sid = 'VAa304166947e6f8856eb337621447985b'
-
+        verified_number = "+84388853371"
         client = Client(account_sid, auth_token)
 
-        message_otp = client.verify.services(verify_sid).verifications.create(to=from_number, channel="sms")
+        message_otp = client.verify.v2.services(verify_sid).verifications.create(to=verified_number, channel="sms")
+        otp_code = message_otp.channel
+        print(otp_code)
         if message_otp.status == "pending":
             return Response("SEND OTP OK", status=status.HTTP_200_OK)
         else:
             return Response("SEND OTP FALSE", status=status.HTTP_400_BAD_REQUEST)
-
 
     @swagger_auto_schema(
         operation_description="Check OTP And Change password",
@@ -720,7 +713,7 @@ class UserViewSet(viewsets.ViewSet):
             openapi.Parameter(
                 name="otp_check",
                 in_=openapi.IN_FORM,
-                type=openapi.TYPE_NUMBER,
+                type=openapi.TYPE_STRING,
                 description="Enter the OTP just notified in SMS",
                 required=True,
             ),
@@ -757,92 +750,86 @@ class UserViewSet(viewsets.ViewSet):
         if not phone_number or not otp_check:
             return Response("Viet do di ba", status=status.HTTP_400_BAD_REQUEST)
 
-        # u = User.objects.get(phonenumber=phone_number).all()
-        # if not u:
-        #     return Response("User with this phone number does not exist.", status=status.HTTP_400_BAD_REQUEST)
+        u = User.objects.get(phonenumber=phone_number).first()
+        if not u:
+            return Response("User with this phone number does not exist.", status=status.HTTP_400_BAD_REQUEST)
 
         account_sid = 'AC1c77c96392cffe33999c3ca1b6635e7d'
-        auth_token = '9c0b3886628acfc7b43211977821f689'
+        auth_token = '7f0a1758e5a37d3bf2bcb2b9a5aa8158'
         from_number = '+17247172226'
         verify_sid = 'VAa304166947e6f8856eb337621447985b'
-
+        verified_number = "+84388853371"
         client = Client(account_sid, auth_token)
 
-        check_otp = client.verify.services(verify_sid).verification_checks.create(to=from_number, code=otp_check)
+        check_otp = client.verify.services(verify_sid).verification_checks.create(to=verified_number, code=otp_check)
 
         if check_otp.status == "approved":
-            user.set_password(new_password)
-            user.save()
+            self.serializer_class.chang_pass(u, new_password)
             return Response("Password reset successful.", status=status.HTTP_200_OK)
         else:
             return Response("OTP Wrong . Enter your OTP again", status=status.HTTP_400_BAD_REQUEST)
 
 
 
-    # @swagger_auto_schema(
-    #     operation_description="Upgrade Account",
-    #     manual_parameters=[
-    #         openapi.Parameter(
-    #             name="Authorization",
-    #             in_=openapi.IN_HEADER,
-    #             type=openapi.TYPE_STRING,
-    #             description="Bearer token",
-    #             required=True,
-    #             default="Bearer your_token_here"
-    #         ),
-    #     ],
-    #     responses={
-    #         200: openapi.Response(
-    #             description="successfully",
-    #             schema=serializers.UserSerializer
-    #         ),
-    #         400: openapi.Response(
-    #             description="Bad request"
-    #         )
-    #     }
-    # )
-    # @action(methods=['post'], url_name='upgrade-account-sendOTP', detail=False)
-    # def upgrade_account_sendOTP(self, request):
-    #     user = request.user
-    #     print(int(user.phonenumber))
-    #     if user.role.id == 2:
-    #         return Response("Your Account did Upgrade", status=status.HTTP_400_BAD_REQUEST)
+    @swagger_auto_schema(
+        operation_description="Upgrade Account",
+        manual_parameters=[
+            openapi.Parameter(
+                name="Authorization",
+                in_=openapi.IN_HEADER,
+                type=openapi.TYPE_STRING,
+                description="Bearer token",
+                required=True,
+                default="Bearer your_token_here"
+            ),
+        ],
+        responses={
+            200: openapi.Response(
+                description="successfully",
+                schema=serializers.UserSerializer
+            ),
+            400: openapi.Response(
+                description="Bad request"
+            )
+        }
+    )
+    @action(methods=['post'], url_name='upgrade-account-call-OTP', detail=False)
+    def upgrade_account_call_OTP(self, request):
+        user = request.user
+        print(int(user.phonenumber))
+        if user.role.id == 2:
+            return Response("Your Account did Upgrade", status=status.HTTP_400_BAD_REQUEST)
+
+        phone_number = int(user.phonenumber)
+        Country_Code='+84'
+
+        account_sid = 'AC1c77c96392cffe33999c3ca1b6635e7d'
+        auth_token = '7f0a1758e5a37d3bf2bcb2b9a5aa8158'
+        from_number = '+17247172226'
+        verify_sid = 'VAa304166947e6f8856eb337621447985b'
+        verified_number = "+84388853371"
+        client = Client(account_sid, auth_token)
+
+        message_otp = client.verify.v2.services(verify_sid).verifications.create(to=verified_number, channel="sms")
+        if message_otp.status == "pending":
+            return Response("SEND OTP OK", status=status.HTTP_200_OK)
+        else:
+            return Response("SEND OTP FALSE", status=status.HTTP_400_BAD_REQUEST)
+
+
+    # app = Flask(__name__)
     #
-    #     phone_number = int(user.phonenumber)
-    #     Country_Code='+84'
     #
-    #     try:
-    #         user = User.objects.get(phonenumber=phone_number,pk=user.id)
-    #     except User.DoesNotExist:
-    #         return Response("User with this phone number does not exist.", status=status.HTTP_400_BAD_REQUEST)
+    # @app.route("/answer", methods=['GET', 'POST'])
+    # def answer_call():
+    #     """Respond to incoming phone calls with a brief message."""
+    #     # Start our TwiML response
+    #     resp = VoiceResponse()
     #
-    #     digits = "0123456789"
-    #     otp = ""
-    #     for i in range(6):
-    #         otp += random.choice(digits)
+    #     # Read a message aloud to the caller
+    #     resp.say("Thank you for calling! Have a great day.", voice='Polly.Amy')
     #
-    #     # Gửi tin nhắn SMS chứa hướng dẫn đặt lại mật khẩu
-    #     # account_sid = 'AC1c77c96392cffe33999c3ca1b6635e7d'
-    #     # auth_token = '9c0b3886628acfc7b43211977821f689'
-    #     # from_number = '+17247172226'
-    #
-    #     client = Client(account_sid, auth_token)
-    #
-    #     message = client.messages.create(
-    #         body=f"Please use the following OTP for verification: {otp}. This OTP will expire in 60 seconds. Please do not share this OTP with anyone. Thank you.",
-    #         from_=from_number,
-    #         to=Country_Code+str(phone_number)
-    #     )
-    #
-    #     print(otp)
-    #
-    #     # Lưu OTP và số điện thoại vào session
-    #     request.session['phone_number-up'] = str(phone_number)
-    #     request.session['otp-up'] = otp
-    #     request.session['otp_timestamp-up'] = datetime.datetime.now()
-    #     request.session.modified = True
-    #
-    #     return Response("SEND OTP.", status=status.HTTP_200_OK)
+    #     return str(resp)
 
     @swagger_auto_schema(
         operation_description="Check OTP And Change password",
