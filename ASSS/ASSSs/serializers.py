@@ -64,6 +64,8 @@ class UserSerializer(serializers.ModelSerializer):
         base_url = 'https://res.cloudinary.com/dyfzuigha/'
         if user.avatar and base_url not in urljoin(base_url, user.avatar.url):
             return user.avatar.url
+        print(len(base_url))
+        return user.avatar
 
     avatar = serializers.SerializerMethodField(method_name='get_avatar_url')
 
@@ -176,10 +178,19 @@ class CommentSerializer(serializers.ModelSerializer):
 class CommentSerializerShow(serializers.ModelSerializer):
     user = UserSerializer()
     post = PostSerializerShow()
+    parentcomment = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
         fields = '__all__'
+
+    def get_parentcomment(self, obj):
+        if obj.parentcomment:
+            parent_comment = Comment.objects.get(pk=obj.parentcomment.id)
+            serializer = CommentSerializerShow(parent_comment)
+            return serializer.data
+        else:
+            return None
 
 
 class TypePaymentSerializerShow(serializers.ModelSerializer):

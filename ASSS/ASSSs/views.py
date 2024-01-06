@@ -345,6 +345,10 @@ class CommentViewSet(viewsets.ViewSet, generics.ListAPIView):
     parser_classes = [parsers.MultiPartParser]
     # swagger_schema = None
 
+    def get_serializer_class(self):
+        if self.action == 'list' or self.action == 'retrieve':
+            return serializers.CommentSerializerShow
+        return serializers.CommentSerializer
 
     @swagger_auto_schema(
         operation_description="Create a new Comment",
@@ -437,13 +441,14 @@ class CommentViewSet(viewsets.ViewSet, generics.ListAPIView):
 
         try:
             comment = self.queryset.get(id=pk)
+
         except Comment.DoesNotExist:
             return Response("This comment does not exist.", status=status.HTTP_404_NOT_FOUND)
 
         if comment.active == 0:
             return Response("The comment has been deleted", status=status.HTTP_404_NOT_FOUND)
 
-        self.serializer_class().change_value_comment(comment, value)
+        self.serializer_class().change_value_comment(comment=comment, value=value)
         comment.refresh_from_db()
 
         return Response("Change value comment successfully.", status=status.HTTP_200_OK)
@@ -929,7 +934,9 @@ class UserViewSet(viewsets.ViewSet):
             return Response("Avatar is required.", status=status.HTTP_400_BAD_REQUEST)
         else:
             upload_data = cloudinary.uploader.upload(new_avatar)
-            # serializer.save(avatar=upload_data['secure_url'])
+            avatar =  upload_data['secure_url'][37:]
+            user.avatar = avatar
+            user.save()
             return Response(serializers.UserSerializer(user).data, status=status.HTTP_200_OK)
 
 
