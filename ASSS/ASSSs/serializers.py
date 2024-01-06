@@ -209,3 +209,19 @@ class PaymentSerializer(serializers.ModelSerializer):
         payment.total = payment.booking.post.house.price + payment.booking.post.postingprice.value
         payment.save()
         return payment
+
+
+class RatingSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Rating
+        fields = ('id', 'point', 'value', 'booking')
+
+
+class RatingSerializerShow(serializers.ModelSerializer):
+    booking = BookingSerializerShow
+    # point = serializers.CharField()
+
+    class Meta:
+        model = Rating
+        fields = '__all__'

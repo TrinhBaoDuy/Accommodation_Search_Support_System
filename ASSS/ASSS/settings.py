@@ -12,7 +12,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import cloudinary
-
+import cloudinary.uploader
+import cloudinary.api
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -32,6 +33,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'fontawesomefree',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -64,6 +66,7 @@ REST_FRAMEWORK = {
 MIDDLEWARE = [
     'ASSSs.middleware.OAuthMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -80,6 +83,15 @@ ROOT_URLCONF = 'ASSS.urls'
 CORS_ORIGIN_ALLOW_ALL = True
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+JAZZMIN_SETTINGS = {
+    # title of the window (Will default to current_admin_site.site_title if absent or None)
+    "site_title": "ASSS ADMIN",
+    "site_header": "Accommodation Search Support System",
+    "welcome_sign": "Welcome to Accommodation Search Support System",
+    # "show_sidebar": True,
+    # "language_chooser": True,
+}
 
 TEMPLATES = [
     {

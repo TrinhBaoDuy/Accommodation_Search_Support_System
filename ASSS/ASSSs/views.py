@@ -1,5 +1,6 @@
 import os
 
+import cloudinary
 from cloudinary.provisioning import user
 from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
@@ -11,6 +12,7 @@ from twilio.rest.voice.v1.dialing_permissions import settings
 from twilio.twiml.voice_response import VoiceResponse, Say
 # from flask import Flask
 from ASSSs import serializers, paginators
+from .permissions import *
 from ASSSs.models import *
 from rest_framework import viewsets, generics, status, permissions, parsers
 from rest_framework.response import Response
@@ -336,12 +338,13 @@ class PostViewSet(viewsets.ViewSet):
         return Response(serializers.CommentSerializerShow(comments, many=True, context={'request': request}).data, status=status.HTTP_200_OK)
 
 
-class CommentViewSet(viewsets.ViewSet):
+class CommentViewSet(viewsets.ViewSet, generics.ListAPIView):
     queryset = Comment.objects.filter(active=True).all()
     serializer_class = serializers.CommentSerializer
     pagination_class = paginators.ASSSPaginator
     parser_classes = [parsers.MultiPartParser]
     # swagger_schema = None
+
 
     @swagger_auto_schema(
         operation_description="Create a new Comment",
@@ -444,6 +447,14 @@ class CommentViewSet(viewsets.ViewSet):
         comment.refresh_from_db()
 
         return Response("Change value comment successfully.", status=status.HTTP_200_OK)
+
+    # def get_permissions(self):
+    #     if self.action == 'delete_comment':
+    #         return [CommentOwner()]
+    #     elif self.action == 'change_value_comment':
+    #         return [CommentOwner()]
+    #     # else:
+    #         # return [permissions.IsAuthenticated()]
 
 
 class DiscountViewSet(viewsets.ModelViewSet):
@@ -793,8 +804,8 @@ class UserViewSet(viewsets.ViewSet):
             )
         }
     )
-    @action(methods=['post'], url_name='upgrade-account-call-OTP', detail=False)
-    def upgrade_account_call_OTP(self, request):
+    @action(methods=['post'], url_name='upgrade-account-send-OTP', detail=False)
+    def upgrade_account_send_OTP(self, request):
         user = request.user
         print(int(user.phonenumber))
         if user.role.id == 2:
@@ -865,33 +876,23 @@ class UserViewSet(viewsets.ViewSet):
         user = request.user
         phonenumbers = str(int(user.phonenumber))
 
-
         account_sid = 'AC1c77c96392cffe33999c3ca1b6635e7d'
-        auth_token = '9c0b3886628acfc7b43211977821f689'
+        auth_token = '7f0a1758e5a37d3bf2bcb2b9a5aa8158'
         from_number = '+17247172226'
-
-        VERYFICATION_SID_SERVICE = settings.TWILIO_VERIFICATION_SERVICE_SID
+        verify_sid = 'VAa304166947e6f8856eb337621447985b'
+        verified_number = "+84388853371"
 
         client = Client(account_sid, auth_token)
 
-        try:
-            verification_check = client.verify \
-                .services(VERYFICATION_SID_SERVICE) \
-                .verification_checks \
-                .create(to=phonenumbers, code=otp_check)
+        check_otp = client.verify.services(verify_sid).verification_checks.create(to=verified_number, code=otp_check)
 
-            auth = verification_check.status == 'approved'
-
-        except Exception as e:
-            print(e)
-
-        if auth:
+        if check_otp.status == "approved":
             user.role = 2
             user.save()
-
             return Response("Upgrade Account successful.", status=status.HTTP_200_OK)
         else:
             return Response("Check OTP False", status=status.HTTP_400_BAD_REQUEST)
+
 
     @swagger_auto_schema(
         operation_description="Update Avatar",
@@ -919,18 +920,18 @@ class UserViewSet(viewsets.ViewSet):
             )
         }
     )
-    @permission_classes([IsAuthenticated])
-    @action(methods=['patch'], url_path='update-avatar', detail=False)
+    @action(methods=['post'], detail=False)
     def update_avatar(self, request):
         user = request.user
         new_avatar = request.FILES.get('avatar')
+
         if not new_avatar:
             return Response("Avatar is required.", status=status.HTTP_400_BAD_REQUEST)
+        else:
+            upload_data = cloudinary.uploader.upload(new_avatar)
+            # serializer.save(avatar=upload_data['secure_url'])
+            return Response(serializers.UserSerializer(user).data, status=status.HTTP_200_OK)
 
-        self.serializer_class().update_avatar(user, new_avatar)
-        user.refresh_from_db()
-
-        return Response(serializers.UserSerializer(user).data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
         operation_description="Get the current user",
@@ -1482,4 +1483,46 @@ class PaymentViewSet(viewsets.ViewSet):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+class RatingViewSet(viewsets.ViewSet):
+    queryset = Rating.objects.filter(active=True).all()
+    serializer_class = serializers.RatingSerializer
+    pagination_class = paginators.ASSSPaginator
+
+    def list(self, request):
+        queryset = self.queryset
+        serializer = self.serializer_class(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        rating = self.queryset.filter(pk=pk).first()
+        serializer = self.serializer_class(rating)
+        return Response(serializer.data)
+
+    def create(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=['get'], detail=True, url_path='get-rating-of-id-user')
+    def get_rating_of_id_user(self, request, pk=None):
+        rating = self.queryset.filter(booking__post__user__id=pk).all()
+        serializer = serializers.RatingSerializerShow(rating,many=True)
+        return Response(serializer.data)
+
+    @action(methods=['get'], detail=True, url_path='get-stars-of-id-user')
+    def get_stars_of_id_user(self, request, pk=None):
+        rating = self.queryset.filter(booking__post__user__id=pk).all()
+        sum = 0
+        count = 0
+        for ra in rating:
+            sum += ra.point
+            count += 1
+        if count == 0:
+            count = 1
+        avg = sum/count
+        serializer = serializers.RatingSerializerShow(rating, many=True)
+        return Response({'avg': round(avg), 'rating': serializer.data}, status=status.HTTP_200_OK)
 

@@ -15,6 +15,7 @@ router.register('roles', views.RoleViewSet, basename='roles')
 router.register('comments', views.CommentViewSet, basename='comments')
 router.register('typepayments', views.TypePaymentViewSet, basename='typepayments')
 router.register('payments', views.PaymentViewSet, basename='payments')
+router.register('ratings', views.RatingViewSet, basename='ratings')
 urlpatterns = [
     path('', include(router.urls))
 ]
