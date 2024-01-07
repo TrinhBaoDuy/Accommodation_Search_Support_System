@@ -1,16 +1,9 @@
 import os
 
-import cloudinary
-from cloudinary.provisioning import user
-from django.http import Http404, HttpResponseRedirect
-from django.shortcuts import get_object_or_404
+
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action, permission_classes
-from twilio.rest.microvisor.v1 import app
-from twilio.rest.voice.v1.dialing_permissions import settings
-from twilio.twiml.voice_response import VoiceResponse, Say
-# from flask import Flask
 from ASSSs import serializers, paginators
 from .permissions import *
 from ASSSs.models import *
