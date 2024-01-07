@@ -32,7 +32,7 @@ class HouseViewSet(viewsets.ViewSet):
     # swagger_schema = None
 
     def list(self, request):
-        queryset = self.get_queryset()
+        queryset = self.queryset
         serializer = self.serializer_class(queryset, many=True)
         return Response(serializer.data)
 
@@ -334,7 +334,7 @@ class PostViewSet(viewsets.ViewSet):
         post = self.queryset.filter(id=pk).first()
         if not post:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        comments = post.comment_set.all()
+        comments = post.comment_set.all().order_by('-created_date')
         return Response(serializers.CommentSerializerShow(comments, many=True, context={'request': request}).data, status=status.HTTP_200_OK)
 
 
@@ -478,7 +478,7 @@ class PostingPriceViewSet(viewsets.ModelViewSet):
 
 class UserViewSet(viewsets.ViewSet):
     queryset = User.objects.filter(active=True).all()
-    serializer_class = serializers.UserSerializer
+    serializer_class = serializers.UserSerializerShow
     pagination_class = paginators.ASSSPaginator
     parser_classes = [parsers.MultiPartParser]
     # swagger_schema = None
@@ -504,7 +504,7 @@ class UserViewSet(viewsets.ViewSet):
     )
     @action(methods=['post'], url_name='create-user', detail=False)
     def create_user(self, request):
-        serializer = self.serializer_class(data=request.data)
+        serializer = serializers.UserSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -529,7 +529,7 @@ class UserViewSet(viewsets.ViewSet):
         except User.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        serializer = serializers.UserSerializer(user)
+        serializer = self.serializer_class(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
@@ -577,7 +577,7 @@ class UserViewSet(viewsets.ViewSet):
     )
     @action(methods=['get'], url_name='current-user', detail=False)
     def current_user(self, request):
-        return Response(serializers.UserSerializer(request.user).data)
+        return Response(self.serializer_class(request.user).data)
 
     @swagger_auto_schema(
         operation_description="Get the follower",
@@ -780,7 +780,7 @@ class UserViewSet(viewsets.ViewSet):
         check_otp = client.verify.services(verify_sid).verification_checks.create(to=verified_number, code=otp_check)
 
         if check_otp.status == "approved":
-            self.serializer_class.chang_pass(u, new_password)
+            serializers.UserSerializer.chang_pass(u, new_password)
             return Response("Password reset successful.", status=status.HTTP_200_OK)
         else:
             return Response("OTP Wrong . Enter your OTP again", status=status.HTTP_400_BAD_REQUEST)
@@ -925,7 +925,7 @@ class UserViewSet(viewsets.ViewSet):
             )
         }
     )
-    @action(methods=['post'], detail=False)
+    @action(methods=['patch'], detail=False)
     def update_avatar(self, request):
         user = request.user
         new_avatar = request.FILES.get('avatar')
@@ -933,11 +933,11 @@ class UserViewSet(viewsets.ViewSet):
         if not new_avatar:
             return Response("Avatar is required.", status=status.HTTP_400_BAD_REQUEST)
         else:
-            upload_data = cloudinary.uploader.upload(new_avatar)
-            avatar =  upload_data['secure_url'][37:]
-            user.avatar = avatar
+            # upload_data = cloudinary.uploader.upload(new_avatar)
+            # avatar = upload_data['url']
+            user.avatar = new_avatar
             user.save()
-            return Response(serializers.UserSerializer(user).data, status=status.HTTP_200_OK)
+            return Response(serializers.UserSerializerShow(user).data, status=status.HTTP_200_OK)
 
 
     @swagger_auto_schema(

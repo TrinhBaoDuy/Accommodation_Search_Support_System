@@ -50,6 +50,25 @@ class PostingPriceSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class UserSerializerShow(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'password', 'avatar', 'first_name', 'last_name', 'email', 'phonenumber', 'dob', 'address', 'role' )
+        extra_kwargs = {
+                'password': {
+                    'write_only': True
+                }
+            }
+
+    def get_avatar(self, user):
+        base_url = 'https://res.cloudinary.com/dyfzuigha/'
+        if user.avatar and base_url not in urljoin(base_url, user.avatar.url):
+            return user.avatar.url
+        return None
+
+    avatar = serializers.SerializerMethodField(method_name='get_avatar')
+
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -60,14 +79,13 @@ class UserSerializer(serializers.ModelSerializer):
                 }
             }
 
-    def get_avatar_url(self, user):
+    def get_avatar(self, user):
         base_url = 'https://res.cloudinary.com/dyfzuigha/'
         if user.avatar and base_url not in urljoin(base_url, user.avatar.url):
             return user.avatar.url
-        print(len(base_url))
-        return user.avatar
+        return None
 
-    avatar = serializers.SerializerMethodField(method_name='get_avatar_url')
+    avatar = serializers.SerializerMethodField(method_name='get_avatar')
 
     def create(self, validated_data):
         data = validated_data.copy()
@@ -75,11 +93,6 @@ class UserSerializer(serializers.ModelSerializer):
         user.set_password(validated_data.get('password'))
         user.save()
         return user
-
-    def update_avatar(self, user, new_avatar):
-        user.avatar = new_avatar
-        user.save()
-        return user.avatar
 
     def chang_pass(self, user, password):
         user.set_password(password)
