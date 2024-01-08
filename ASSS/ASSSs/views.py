@@ -1560,10 +1560,12 @@ class PushPostViewSet(viewsets.ViewSet):
 
     @action(methods=['post'], detail=False)
     def push_post(self, request):
-        user = request.user,
-
+        user = request.user
+        if isinstance(user, User):
+            print(user.id)
+        list_host = User.objects.filter(role_id=2).all()
         if user:
-            if user.role != 2:
+            if user not in list_host:
                 return Response("Just Host can push Post", status=status.HTTP_403_FORBIDDEN)
 
             address = request.data.get("address")
@@ -1577,7 +1579,8 @@ class PushPostViewSet(viewsets.ViewSet):
             house.save()
 
             if house:
-                images = request.FILES.getList("images")
+                print(house)
+                images = request.FILES.getlist('images')
                 id_image = []
                 if not images:
                     house.delete()
@@ -1586,17 +1589,17 @@ class PushPostViewSet(viewsets.ViewSet):
                     img = Image.objects.create(house=house, imageURL=image)
                     img.save()
                     id_image.append(img.id)
-
+                # breakpoint()
                 post_data = {
                     'topic': request.data.get("topic"),
                     'describe': request.data.get("describe"),
                     'postingdate': request.data.get("postingdate"),
                     'expirationdate': request.data.get("expirationdate"),
                     'status': 0,
-                    'house': house,
-                    'user': user,
-                    'discount': request.data.get("discount"),
-                    'postingprice':request.data.get("postingprice"),
+                    'house': House.objects.get(pk=house.id),
+                    'user': User.objects.get(pk=user.id),
+                    'discount': Discount.objects.get(pk=request.data.get("discount")),
+                    'postingprice':PostingPrice.objects.get(pk=request.data.get("postingprice")),
                 }
                 check = True
                 for key, value in post_data.items():

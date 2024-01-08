@@ -52,6 +52,7 @@ class PostingPriceSerializer(serializers.ModelSerializer):
 
 class UserSerializerShow(serializers.ModelSerializer):
     role = RoleSerializer()
+
     class Meta:
         model = User
         fields = ('id', 'username', 'password', 'avatar', 'first_name', 'last_name', 'email', 'phonenumber', 'dob', 'address', 'role' )
