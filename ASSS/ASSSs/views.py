@@ -1,6 +1,7 @@
 import os
 
 from aiohttp.web_routedef import view
+
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action, permission_classes
@@ -9,11 +10,12 @@ from .permissions import *
 from ASSSs.models import *
 from rest_framework import viewsets, generics, status, permissions, parsers
 from rest_framework.response import Response
-from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from twilio.rest import Client
 import random
 import datetime
+from .filters import PostFilter
+from django_filters.rest_framework import DjangoFilterBackend
 # Create your views here.
 
 
@@ -159,16 +161,20 @@ class ImageViewSet(viewsets.ViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class PostViewSet(viewsets.ViewSet):
+class PostViewSet(viewsets.ViewSet, generics.ListAPIView):
     queryset = Post.objects.filter(active=True).all()
     serializer_class = serializers.PostSerializer
     pagination_class = paginators.ASSSPaginator
     parser_classes = [parsers.MultiPartParser]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = PostFilter
     # swagger_schema = None
 
     def list(self, request):
         queryset = self.queryset
-        serializer = serializers.PostSerializerShow(queryset, many=True)
+        filtered_queryset = self.filter_queryset(queryset)
+        # queryset = self.filterset_class(self.queryset)
+        serializer = serializers.PostSerializerShow(filtered_queryset, many=True)
         return Response(serializer.data)
 
     @action(methods=['get'], url_name='list-post-not-accepted', detail=False)
