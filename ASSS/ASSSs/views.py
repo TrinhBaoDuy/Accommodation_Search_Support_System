@@ -14,7 +14,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from twilio.rest import Client
 import random
 import datetime
-from .filters import PostFilter
+from .filters import PostFilter, UserFilter
 from django_filters.rest_framework import DjangoFilterBackend
 # Create your views here.
 
@@ -480,7 +480,15 @@ class UserViewSet(viewsets.ViewSet):
     serializer_class = serializers.UserSerializerShow
     pagination_class = paginators.ASSSPaginator
     parser_classes = [parsers.MultiPartParser]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = UserFilter
     # swagger_schema = None
+
+    def list(self, request):
+        queryset = self.queryset
+        filtered_queryset = self.filter_queryset(queryset)
+        serializer = serializers.UserSerializerShow(filtered_queryset, many=True)
+        return Response(serializer.data)
 
     def get_permissions(self):
         if self.action.__eq__('current_user') or self.action.__eq__('reset_password'):

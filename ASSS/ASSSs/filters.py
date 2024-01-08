@@ -12,3 +12,11 @@ class PostFilter(django_filters.FilterSet):
     class Meta:
         model = Post
         fields = fields = ['postingdate', 'expirationdate', 'house__address', 'user__username', 'discount__name']
+
+
+class UserFilter(django_filters.FilterSet):
+    username = django_filters.CharFilter(lookup_expr='icontains', label='Username')
+
+    class Meta:
+        model = User
+        fields = ['username']
