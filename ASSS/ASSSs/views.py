@@ -1037,10 +1037,9 @@ class FollowViewSet(viewsets.ViewSet):
 
     @action(methods=['get'], detail=True, url_path='followeduser')
     def followeduser(self, request, pk):
-        user = self.queryset.filter(pk=pk).first()
-
+        user = User.objects.get(pk=pk)
         if user:
-            followed_users = self.queryset.filter(follower=user)
+            followed_users = self.queryset.filter(follower=user).all()
             if followed_users:
                 serializer = serializers.FollowSerializerShow(followed_users, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
@@ -1051,10 +1050,9 @@ class FollowViewSet(viewsets.ViewSet):
 
     @action(methods=['get'], detail=True, url_path='follower')
     def follower(self, request, pk):
-        user = self.queryset.filter(pk=pk).first()
-
+        user = User.objects.get(pk=pk)
         if user:
-            follower = self.queryset.filter(followeduser=user)
+            follower = self.queryset.filter(followeduser=user).all()
             if follower:
                 serializer = serializers.FollowSerializerShow(follower, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)

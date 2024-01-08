@@ -29,7 +29,7 @@ def count_infor_system():
     past_year = year-1
     total_account = User.objects.filter(active=True).count()
     total_post = Post.objects.filter( active=True, created_date__year=year).count()
-    total_price = 32000000
+    total_price = Booking.objects.filter(active=True)
     total_account_previous_year = User.objects.filter(created_date__year=past_year, active=True).count()
     total_account_now_year = User.objects.filter(created_date__year=year, active=True).count()
     growth_rate = ((total_account_now_year*100) / (total_account_previous_year+total_account_now_year))

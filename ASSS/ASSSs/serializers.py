@@ -115,8 +115,8 @@ class FollowSerializer(serializers.ModelSerializer):
 
 
 class FollowSerializerShow(serializers.ModelSerializer):
-    follower = UserSerializer()
-    followeduser = UserSerializer()
+    follower = UserSerializerShow()
+    followeduser = UserSerializerShow()
     class Meta:
         model = Follow
         fields = '__all__'
@@ -140,7 +140,7 @@ class PostSerializer(serializers.ModelSerializer):
 
 class PostSerializerShow(serializers.ModelSerializer):
     house = HouseSerializer()
-    user = UserSerializer()
+    user = UserSerializerShow()
     discount = DiscountSerializer()
     postingprice = PostingPriceSerializer()
     class Meta:
@@ -166,7 +166,7 @@ class BookingSerializer(serializers.ModelSerializer):
 
 class BookingSerializerShow(serializers.ModelSerializer):
     post = PostSerializerShow()
-    user = UserSerializer()
+    user = UserSerializerShow()
 
     class Meta:
         model = Booking
@@ -191,7 +191,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializerShow(serializers.ModelSerializer):
-    user = UserSerializer()
+    user = UserSerializerShow()
     post = PostSerializerShow()
     parentcomment = serializers.SerializerMethodField()
 
