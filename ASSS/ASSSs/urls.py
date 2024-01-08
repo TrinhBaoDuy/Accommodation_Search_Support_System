@@ -16,6 +16,8 @@ router.register('comments', views.CommentViewSet, basename='comments')
 router.register('typepayments', views.TypePaymentViewSet, basename='typepayments')
 router.register('payments', views.PaymentViewSet, basename='payments')
 router.register('ratings', views.RatingViewSet, basename='ratings')
+router.register('posts', views.PushPostViewSet, basename='posts')
+
 urlpatterns = [
     path('', include(router.urls))
 ]

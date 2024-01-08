@@ -1,6 +1,6 @@
 import os
 
-
+from aiohttp.web_routedef import view
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action, permission_classes
@@ -1036,6 +1036,35 @@ class FollowViewSet(viewsets.ViewSet):
         except Follow.DoesNotExist:
             return Response("User has no followeduser", status=status.HTTP_200_OK)
 
+    @action(methods=['get'], detail=True, url_path='followeduser')
+    def followeduser(self, request, pk):
+        user = self.queryset.filter(pk=pk).first()
+
+        if user:
+            followed_users = self.queryset.filter(follower=user)
+            if followed_users:
+                serializer = serializers.FollowSerializerShow(followed_users, many=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response("User has no followed users", status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response("User not found", status=status.HTTP_404_NOT_FOUND)
+
+    @action(methods=['get'], detail=True, url_path='follower')
+    def follower(self, request, pk):
+        user = self.queryset.filter(pk=pk).first()
+
+        if user:
+            follower = self.queryset.filter(followeduser=user)
+            if follower:
+                serializer = serializers.FollowSerializerShow(follower, many=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response("User has no followers", status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response("User not found", status=status.HTTP_404_NOT_FOUND)
+
+
     @swagger_auto_schema(
         operation_description="Create a new Follow",
         manual_parameters=[
@@ -1526,3 +1555,64 @@ class RatingViewSet(viewsets.ViewSet):
         serializer = serializers.RatingSerializerShow(rating, many=True)
         return Response({'avg': round(avg), 'rating': serializer.data}, status=status.HTTP_200_OK)
 
+
+class PushPostViewSet(viewsets.ViewSet):
+
+    @action(methods=['post'], detail=False)
+    def push_post(self, request):
+        user = request.user,
+
+        if user:
+            if user.role != 2:
+                return Response("Just Host can push Post", status=status.HTTP_403_FORBIDDEN)
+
+            address = request.data.get("address")
+            acreage = request.data.get("acreage")
+            price = request.data.get("price")
+            quantity = request.data.get("quantity")
+            if not address or not acreage or not quantity or not price:
+                return Response("Info house not found", status=status.HTTP_404_NOT_FOUND)
+
+            house = House.objects.create(address=address, acreage=acreage, price=price, quantity=quantity)
+            house.save()
+
+            if house:
+                images = request.FILES.getList("images")
+                id_image = []
+                if not images:
+                    house.delete()
+                    return Response("Image not found", status=status.HTTP_404_NOT_FOUND)
+                for image in images:
+                    img = Image.objects.create(house=house, imageURL=image)
+                    img.save()
+                    id_image.append(img.id)
+
+                post_data = {
+                    'topic': request.data.get("topic"),
+                    'describe': request.data.get("describe"),
+                    'postingdate': request.data.get("postingdate"),
+                    'expirationdate': request.data.get("expirationdate"),
+                    'status': 0,
+                    'house': house,
+                    'user': user,
+                    'discount': request.data.get("discount"),
+                    'postingprice':request.data.get("postingprice"),
+                }
+                check = True
+                for key, value in post_data.items():
+                    if value is None:
+                        check = False
+                        return Response(f"Missing value for field {key}", status=status.HTTP_400_BAD_REQUEST)
+
+                if check.__eq__(False):
+                    house.delete()
+                    for pk in id_image:
+                        Image.objects.get(pk=pk).delete()
+
+                post = Post.objects.create(**post_data)
+                post.save()
+                return Response(serializers.PostSerializerShow(post).data, status=status.HTTP_200_OK)
+            else:
+                return Response("Info house not found", status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response("User not found", status=status.HTTP_404_NOT_FOUND)
