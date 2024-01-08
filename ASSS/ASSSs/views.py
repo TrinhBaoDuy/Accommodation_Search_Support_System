@@ -475,10 +475,9 @@ class PostingPriceViewSet(viewsets.ModelViewSet):
     # swagger_schema = None
 
 
-class UserViewSet(viewsets.ViewSet):
+class GetUserViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIView):
     queryset = User.objects.filter(active=True).all()
     serializer_class = serializers.UserSerializerShow
-    pagination_class = paginators.ASSSPaginator
     parser_classes = [parsers.MultiPartParser]
     filter_backends = [DjangoFilterBackend]
     filterset_class = UserFilter
@@ -489,6 +488,13 @@ class UserViewSet(viewsets.ViewSet):
         filtered_queryset = self.filter_queryset(queryset)
         serializer = serializers.UserSerializerShow(filtered_queryset, many=True)
         return Response(serializer.data)
+
+
+class UserViewSet(viewsets.ViewSet):
+    queryset = User.objects.filter(active=True).all()
+    serializer_class = serializers.UserSerializerShow
+    pagination_class = paginators.ASSSPaginator
+    parser_classes = [parsers.MultiPartParser]
 
     def get_permissions(self):
         if self.action.__eq__('current_user') or self.action.__eq__('reset_password'):
@@ -517,27 +523,6 @@ class UserViewSet(viewsets.ViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @swagger_auto_schema(
-        operation_description="Retrieve a user by ID",
-        responses={
-            200: openapi.Response(
-                description="User retrieved successfully",
-                schema=serializers.UserSerializer
-            ),
-            404: openapi.Response(
-                description="User not found"
-            )
-        }
-    )
-    @action(methods=['get'], url_name='get-user', detail=True)
-    def get_user_by_id(self, request, pk=None):
-        try:
-            user = self.queryset.get(pk=pk)
-        except User.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        serializer = self.serializer_class(user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
         operation_description="Delete a user by ID",
