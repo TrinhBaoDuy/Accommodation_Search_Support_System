@@ -34,6 +34,7 @@ ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'jazzmin',
+    # 'paypal',
     'fontawesomefree',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -62,6 +63,15 @@ REST_FRAMEWORK = {
     )
 }
 
+PAYPAL_MODE = 'sandbox'  # Chế độ sandbox hoặc live
+PAYPAL_CLIENT_ID = 'AffgJPXuyZM4uvZ8CITlIoI9ne6vXNF83wNhdeBG6EQaCDn8Sgzlr_ZnFdqvDuN7crOSfKj8VcRLWF2U'
+PAYPAL_SECRET = 'EIgvnSpioK_vo2Z48R8SzptULJUhJqBvYrXEKQetuQZr09rUHwqpvFIWtHi7g0ctAtQHR0xBJNZtqKh-'
+PAYPAL_RECEIVER_EMAIL = 'trinhbaoduy.26012019@gmail.com'
+PAYPAL_TEST = True
+
+EMAILJS_SERVICE_ID = 'service_ASSS_2023'
+EMAILJS_TEMPLATE_ID = 'template_xhjr5ss'
+EMAILJS_PUBLIC_KEY = '9vgH6K68UkvUujAoE'
 
 MIDDLEWARE = [
     'ASSSs.middleware.OAuthMiddleware',
@@ -92,6 +102,13 @@ JAZZMIN_SETTINGS = {
     # "show_sidebar": True,
     # "language_chooser": True,
 }
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'trinhbaoduy.26012019@gmail.com'
+EMAIL_HOST_PASSWORD = 'arynqocynjcsucub'
 
 TEMPLATES = [
     {

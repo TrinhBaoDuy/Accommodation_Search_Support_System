@@ -1,10 +1,20 @@
+import json
 import os
+from decimal import Decimal
 
+import paypalrestsdk
+import requests
 from aiohttp.web_routedef import view
-
+from django.core import mail
+from django.shortcuts import redirect, render
+from django.views.decorators.csrf import csrf_exempt
+from django.core.mail import EmailMultiAlternatives, EmailMessage
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from paypal.standard.forms import PayPalPaymentsForm
 from rest_framework.decorators import action, permission_classes
+from requests_oauthlib import OAuth2Session
+from ASSS import settings
 from ASSSs import serializers, paginators
 from .permissions import *
 from ASSSs.models import *
@@ -16,7 +26,62 @@ import random
 import datetime
 from .filters import PostFilter, UserFilter
 from django_filters.rest_framework import DjangoFilterBackend
-# Create your views here.
+import uuid
+from django.urls import reverse
+from django.http import JsonResponse
+
+
+#vnpay
+
+#mail
+class SendMailViewSet(viewsets.ViewSet):
+
+    def create(self,request):
+        host = request.user
+        email_followers = Follow.objects.filter(followeduser=host).values('follower__email', 'follower__first_name', 'follower__last_name')
+        success_count = 0
+        connection = mail.get_connection()
+        # for follower in email_followers:
+        subject = str(host.first_name + " " + host.last_name) + " có tin mới !!!"
+        # tennguoigui = str(follower['follower__first_name'] + follower['follower__last_name'])
+        tennguoigui = 'do coi ma'
+        tennguoidangtin = str(host.first_name + " " + host.last_name)
+        linkbaiviet = 'nhap'
+        tieudebaiviet = 'nhap'
+        from_email = "trinhbaoduy.26012019@gmail.com"
+        to = "2051050075duy@ou.edu.vn"
+        html_content = f"""
+        <p>Xin chào {tennguoigui},</p>
+        <p>Chúng tôi xin thông báo rằng bạn đang theo dõi {tennguoidangtin}. Chúng tôi vừa đăng một bài viết mới và muốn chia sẻ nó với bạn.</p>
+        <p>Hãy truy cập vào <a href="{linkbaiviet}">{tieudebaiviet}</a> để đọc bài viết mới nhất của chúng tôi.</p>
+        <p>Xin chân thành cảm ơn và hy vọng bạn tìm thấy nội dung bài viết hữu ích.</p>
+        <p>Chúc bạn một ngày tốt lành!</p>
+        <img src='https://res.cloudinary.com/dstqvlt8d/image/upload/v1704609698/ASSS-avatar/a0lpq48qktdfsozlba97.jpg'/>
+        """
+        msg = mail.EmailMessage(subject, html_content, from_email, [to], connection=connection)
+        msg.content_subtype = "html"
+        success_count = msg.send()
+        if success_count == 1:
+            return Response({'message': 'Email sent successfully.'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'message': 'Failed to send email.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# paypal
+class PayPalViewSet(viewsets.ViewSet):
+
+    def list(self, request):
+        context = {
+            'url': settings.PAYPAL_CLIENT_ID,
+            'price': 1,
+            'description': 'hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh'
+        }
+        return render(request, 'paypal/payment.html', context)
+
+    def paymentComplete(request):
+        breakpoint()
+        print('Thanh cong nghe', request.data.get("price"))
+        return JsonResponse('Payment completed!', safe=False)
 
 
 class HouseViewSet(viewsets.ViewSet):
@@ -24,7 +89,7 @@ class HouseViewSet(viewsets.ViewSet):
     serializer_class = serializers.HouseSerializer
     pagination_class = paginators.ASSSPaginator
     parser_classes = [parsers.MultiPartParser]
-    # swagger_schema = None
+    swagger_schema = None
 
     def list(self, request):
         queryset = self.queryset
@@ -92,7 +157,7 @@ class ImageViewSet(viewsets.ViewSet):
     serializer_class = serializers.ImageSerializer
     pagination_class = paginators.ASSSPaginator
     parser_classes = [parsers.MultiPartParser]
-    # swagger_schema = None
+    swagger_schema = None
 
     @swagger_auto_schema(
         operation_description="Push Images House",
@@ -168,7 +233,7 @@ class PostViewSet(viewsets.ViewSet, generics.ListAPIView):
     parser_classes = [parsers.MultiPartParser]
     filter_backends = [DjangoFilterBackend]
     filterset_class = PostFilter
-    # swagger_schema = None
+    swagger_schema = None
 
     def list(self, request):
         queryset = self.queryset
@@ -312,19 +377,13 @@ class PostViewSet(viewsets.ViewSet, generics.ListAPIView):
             ),
         }
     )
-    @action(methods=['post'], url_path='delete-post', detail=False)
-    def delete_post(self, request):
-        pk = request.data.get('pk')
-
+    @action(methods=['delete'], url_path='delete-post', detail=True)
+    def delete_post(self, request, pk):
         try:
-            post = self.queryset.get(id=pk)
+            post = self.queryset.get(pk=pk)
         except Post.DoesNotExist:
             return Response("This post does not exist.", status=status.HTTP_404_NOT_FOUND)
-
-        if post.status != 1:
-            return Response("Your post is awaiting confirmation. Please delete after the article has been posted", status=status.HTTP_404_NOT_FOUND)
-
-        post.delete()
+        post.delete_permanently()
 
         return Response("Delete post successfully.", status=status.HTTP_200_OK)
 
@@ -342,7 +401,7 @@ class CommentViewSet(viewsets.ViewSet, generics.ListAPIView):
     serializer_class = serializers.CommentSerializer
     pagination_class = paginators.ASSSPaginator
     parser_classes = [parsers.MultiPartParser]
-    # swagger_schema = None
+    swagger_schema = None
 
     def get_serializer_class(self):
         if self.action == 'list' or self.action == 'retrieve':
@@ -465,14 +524,7 @@ class DiscountViewSet(viewsets.ModelViewSet):
     queryset = Discount.objects.all()
     serializer_class = serializers.DiscountSerializer
     pagination_class = paginators.ASSSPaginator
-    # swagger_schema = None
-
-
-class PostingPriceViewSet(viewsets.ModelViewSet):
-    queryset = PostingPrice.objects.all()
-    serializer_class = serializers.PostingPriceSerializer
-    pagination_class = paginators.ASSSPaginator
-    # swagger_schema = None
+    swagger_schema = None
 
 
 class GetUserViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIView):
@@ -481,7 +533,7 @@ class GetUserViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAP
     parser_classes = [parsers.MultiPartParser]
     filter_backends = [DjangoFilterBackend]
     filterset_class = UserFilter
-    # swagger_schema = None
+    swagger_schema = None
 
     def list(self, request):
         queryset = self.queryset
@@ -495,6 +547,7 @@ class UserViewSet(viewsets.ViewSet):
     serializer_class = serializers.UserSerializerShow
     pagination_class = paginators.ASSSPaginator
     parser_classes = [parsers.MultiPartParser]
+    # swagger_schema = None
 
     def get_permissions(self):
         if self.action.__eq__('current_user') or self.action.__eq__('reset_password'):
@@ -825,20 +878,6 @@ class UserViewSet(viewsets.ViewSet):
             return Response("SEND OTP FALSE", status=status.HTTP_400_BAD_REQUEST)
 
 
-    # app = Flask(__name__)
-    #
-    #
-    # @app.route("/answer", methods=['GET', 'POST'])
-    # def answer_call():
-    #     """Respond to incoming phone calls with a brief message."""
-    #     # Start our TwiML response
-    #     resp = VoiceResponse()
-    #
-    #     # Read a message aloud to the caller
-    #     resp.say("Thank you for calling! Have a great day.", voice='Polly.Amy')
-    #
-    #     return str(resp)
-
     @swagger_auto_schema(
         operation_description="Check OTP And Change password",
         manual_parameters=[
@@ -970,7 +1009,7 @@ class UserViewSet(viewsets.ViewSet):
         return Response(serializers.PostSerializerShow(posts, many=True, context={'request': request}).data, status=status.HTTP_200_OK)
 
 
-class FollowViewSet(viewsets.ViewSet):
+class FollowViewSet(viewsets.ViewSet, generics.ListAPIView):
     queryset = Follow.objects.filter(active=True).all()
     serializer_class = serializers.FollowSerializer
     pagination_class = paginators.ASSSPaginator
@@ -1063,7 +1102,7 @@ class FollowViewSet(viewsets.ViewSet):
 
 
     @swagger_auto_schema(
-        operation_description="Create a new Follow",
+        operation_description="Follow",
         manual_parameters=[
             openapi.Parameter(
                 name="Authorization",
@@ -1090,44 +1129,25 @@ class FollowViewSet(viewsets.ViewSet):
             )
         }
     )
-    @action(methods=['post'], url_path='create-or-update-follow', detail=False)
-    def create_or_update_follow(self, request):
+    @action(methods=['post'], url_path='create-or-delete-follow', detail=False)
+    def create_or_delete_follow(self, request):
         current_user = request.user
         followed_user_id = request.data.get('followed_user')
 
-        try:
-            followed_user = User.objects.get(id=followed_user_id)
-        except followed_user.DoesNotExist:
+        followed_user = User.objects.get(id=followed_user_id)
+        if not followed_user:
             return Response("The followed user does not exist.", status=status.HTTP_400_BAD_REQUEST)
 
-        if current_user.following.filter(followeduser=followed_user, active=True).exists():
-            return Response("You have already followed this user.", status=status.HTTP_400_BAD_REQUEST)
-
-        existing_follow = current_user.following.filter(followeduser=followed_user).first()
-        if existing_follow:
-            if existing_follow.active:
-                return Response("You have already followed this user.", status=status.HTTP_400_BAD_REQUEST)
-            else:
-                existing_follow.active = True
-                existing_follow.save()
-                return Response("Follow updated successfully at "+str(datetime.date.today().strftime('%d/%m/%Y')), status=status.HTTP_200_OK)
-
         if current_user.__eq__(followed_user):
             return Response("You cannot follow yourself.", status=status.HTTP_400_BAD_REQUEST)
 
-        if current_user.__eq__(followed_user):
-            return Response("You cannot follow yourself.", status=status.HTTP_400_BAD_REQUEST)
+        follow, created = Follow.objects.update_or_create(follower=current_user, followeduser=followed_user)
+        if not created:
+            follow.status = False
+            follow.delete_permanently()
+            return Response("Un Follow", status=status.HTTP_204_NO_CONTENT)
 
-        serializer = serializers.FollowSerializer(data={
-            'follower': current_user.id,
-            'followeduser': followed_user_id
-        })
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response("Follow created successfully.", status=status.HTTP_200_OK)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response("Follow", status=status.HTTP_201_CREATED)
 
     @swagger_auto_schema(
         operation_description="UnFollow",
@@ -1184,7 +1204,7 @@ class BookingViewSet(viewsets.ViewSet):
     serializer_class = serializers.BookingSerializer
     pagination_class = paginators.ASSSPaginator
     parser_classes = [parsers.MultiPartParser]
-    # swagger_schema = None
+    swagger_schema = None
 
     @swagger_auto_schema(
         operation_description="Create Booking",
@@ -1384,7 +1404,7 @@ class RoleViewSet(viewsets.ViewSet):
     queryset = Role.objects.exclude(rolename='Admin')
     serializer_class = serializers.RoleSerializer
     pagination_class = paginators.ASSSPaginator
-    # swagger_schema = None
+    swagger_schema = None
 
     def list(self, request):
         queryset = self.queryset
@@ -1396,7 +1416,7 @@ class TypePaymentViewSet(viewsets.ViewSet):
     queryset = TypePayment.objects.all()
     serializer_class = serializers.TypePaymentSerializerShow
     pagination_class = paginators.ASSSPaginator
-    # swagger_schema = None
+    swagger_schema = None
 
     def list(self, request):
         queryset = self.queryset
@@ -1408,7 +1428,7 @@ class PaymentViewSet(viewsets.ViewSet):
     queryset = Payment.objects.filter(active=True).all()
     serializer_class = serializers.PaymentSerializer
     pagination_class = paginators.ASSSPaginator
-    # swagger_schema = None
+    swagger_schema = None
 
     @swagger_auto_schema(
         operation_description="List Payment History",
@@ -1514,6 +1534,7 @@ class RatingViewSet(viewsets.ViewSet):
     queryset = Rating.objects.filter(active=True).all()
     serializer_class = serializers.RatingSerializer
     pagination_class = paginators.ASSSPaginator
+    swagger_schema = None
 
     def list(self, request):
         queryset = self.queryset
@@ -1554,6 +1575,7 @@ class RatingViewSet(viewsets.ViewSet):
 
 
 class PushPostViewSet(viewsets.ViewSet):
+    swagger_schema = None
 
     @action(methods=['post'], detail=False)
     def push_post(self, request):
@@ -1580,39 +1602,76 @@ class PushPostViewSet(viewsets.ViewSet):
                 images = request.FILES.getlist('images')
                 id_image = []
                 if not images:
-                    house.delete()
+                    house.delete_permanently()
                     return Response("Image not found", status=status.HTTP_404_NOT_FOUND)
                 for image in images:
                     img = Image.objects.create(house=house, imageURL=image)
                     img.save()
                     id_image.append(img.id)
-                # breakpoint()
                 post_data = {
                     'topic': request.data.get("topic"),
                     'describe': request.data.get("describe"),
-                    'postingdate': request.data.get("postingdate"),
-                    'expirationdate': request.data.get("expirationdate"),
+                    # 'postingdate': request.data.get("postingdate"),
+                    # 'expirationdate': request.data.get("expirationdate"),
+                    'postingdate': '2024-01-10',
+                    'expirationdate': '2024-01-20',
                     'status': 0,
                     'house': House.objects.get(pk=house.id),
                     'user': User.objects.get(pk=user.id),
                     'discount': Discount.objects.get(pk=request.data.get("discount")),
-                    'postingprice':PostingPrice.objects.get(pk=request.data.get("postingprice")),
+                    'postingprice': request.data.get("postingprice"),
                 }
                 check = True
                 for key, value in post_data.items():
                     if value is None:
                         check = False
+                        # breakpoint()
                         return Response(f"Missing value for field {key}", status=status.HTTP_400_BAD_REQUEST)
-
+                # breakpoint()
                 if check.__eq__(False):
-                    house.delete()
+                    house.delete_permanently()
                     for pk in id_image:
-                        Image.objects.get(pk=pk).delete()
-
+                        Image.objects.get(pk=pk).delete_permanently()
+                # breakpoint()
                 post = Post.objects.create(**post_data)
                 post.save()
+                print(post)
+                # breakpoint()
                 return Response(serializers.PostSerializerShow(post).data, status=status.HTTP_200_OK)
             else:
                 return Response("Info house not found", status=status.HTTP_404_NOT_FOUND)
         else:
             return Response("User not found", status=status.HTTP_404_NOT_FOUND)
+
+
+
+class LikeViewSet(viewsets.ViewSet):
+    queryset = Like.objects.filter(active=True).all()
+    serializer_class = serializers.LikeSerializer
+    pagination_class = paginators.ASSSPaginator
+
+    # swagger_schema = None
+    def list(self, request):
+        queryset = self.queryset
+        serializer = serializers.LikeSerializerShow(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(methods=['post'], url_name='create_or_delete_like', detail=False)
+    def create_or_delete_like(self, request):
+        user_id = request.data.get('user_id')
+        post_id = request.data.get('post_id')
+
+        user = User.objects.get(pk=user_id)
+        post = Post.objects.get(pk=post_id)
+
+        if not user or not post:
+            return Response("Not Found", status=status.HTTP_404_NOT_FOUND)
+
+        like, created = Like.objects.update_or_create(user=user, post=post, defaults={'status': True})
+        if not created:
+            like.status = False
+            like.delete_permanently()
+            return Response("Un Like", status=status.HTTP_204_NO_CONTENT)
+
+        return Response("Like", status=status.HTTP_201_CREATED)
+

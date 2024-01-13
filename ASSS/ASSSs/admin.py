@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.template.response import TemplateResponse
 
 from . import dao
-from .models import Post,House,Comment,PostingPrice,Discount,Role,Image,Follow,Booking,User
+from .models import Post,House,Comment,Discount,Role,Image,Follow,Booking,User
 from django.urls import path
 # Register your models here.
 
@@ -34,6 +34,7 @@ class ASSSAdminSite(admin.AdminSite):
             'hot_hots': dao.top_hosts_follower_a_lot(),
             'count_post': dao.count_post(),
             'year_data': dao.get_year(),
+            'top_host_active': dao.top_host_active(),
             'statistics_type': request.GET.get('statistics_type', 'Statistics_month'),
             'selected_year': request.GET.get('selected_year', '2024'),
         })
@@ -42,7 +43,6 @@ class ASSSAdminSite(admin.AdminSite):
         return TemplateResponse(request, 'admin/stats.html', {
             'top_hosts': dao.top_hosts_post_a_lot(),
         })
-
 
 
 
@@ -65,7 +65,6 @@ admin_site.register(House)
 admin_site.register(Discount)
 admin_site.register(Post)
 admin_site.register(Comment)
-admin_site.register(PostingPrice)
 admin_site.register(Booking)
 admin_site.register(Follow)
 admin_site.register(Image)

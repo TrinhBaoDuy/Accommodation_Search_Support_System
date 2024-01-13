@@ -3,7 +3,7 @@ import datetime
 
 from django.db.models.functions import ExtractYear, ExtractMonth
 from ASSSs.models import *
-from django.db.models import Count, Q, Case, When, IntegerField, Min, Avg
+from django.db.models import Count, Q, Case, When, IntegerField, Min, Avg, Sum
 
 
 def load_houses(params={}):
@@ -29,17 +29,21 @@ def count_infor_system():
     past_year = year-1
     total_account = User.objects.filter(active=True).count()
     total_post = Post.objects.filter( active=True, created_date__year=year).count()
-    total_price = Booking.objects.filter(active=True)
+    list_total_price = Booking.objects.filter(active=True,created_date__year=year, status=1).all().values("post__postingprice")
+    total_sum = 0
+    for item in list_total_price:
+        total_sum += item['post__postingprice']
     total_account_previous_year = User.objects.filter(created_date__year=past_year, active=True).count()
     total_account_now_year = User.objects.filter(created_date__year=year, active=True).count()
     growth_rate = ((total_account_now_year*100) / (total_account_previous_year+total_account_now_year))
-
+    exchange_rate = 23000
+    total_sum_usd = total_sum / exchange_rate
     return {
         'year': year,
         'past_year':  past_year,
         'total_account': total_account,
         'total_post': total_post,
-        'total_price': "${:,.0f}".format(total_price),
+        'total_price': "${:,.0f}".format(total_sum_usd),
         'growth_rate': round(growth_rate)
     }
 
@@ -258,3 +262,26 @@ def count_users_each_quarter_of_the_year(params={}):
     print('--------------MMMMMMMMMMMMMMMMMMMMMMMM---RRRRRRRRRRRRRRRRRRRR-----------')
     print(result)
     return result
+
+
+def top_host_active():
+    users = User.objects.filter(role__rolename='Host',active=True).annotate(post_count=Count('posts')).order_by('-post_count').values('id','username','first_name','last_name','avatar','gender','dob','post_count')[:8]
+    info = []
+    for user in users:
+        p = Post.objects.filter(user__id=user['id']).count()
+        l = Like.objects.filter(post__user__id=user['id']).count()
+        f = Follow.objects.filter(followeduser__id=user['id']).count()
+        queryset = Booking.objects.filter(post__user__id=user['id'], status=1).annotate(sum_price=Sum('post__house__price')).values('sum_price')
+        sum_price = 0
+        for item in queryset:
+            sum_price += item['sum_price']
+        user_info = {
+            'user': user,
+            'posts': p,
+            'likes': l,
+            'followers': f,
+            'prices': "{:,.0f} VND".format(sum_price),
+        }
+        info.append(user_info)
+
+    return info

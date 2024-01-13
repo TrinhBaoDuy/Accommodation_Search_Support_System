@@ -44,12 +44,6 @@ class DiscountSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class PostingPriceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PostingPrice
-        fields = '__all__'
-
-
 class UserSerializerShow(serializers.ModelSerializer):
     role = RoleSerializer()
 
@@ -142,7 +136,7 @@ class PostSerializerShow(serializers.ModelSerializer):
     house = HouseSerializer()
     user = UserSerializerShow()
     discount = DiscountSerializer()
-    postingprice = PostingPriceSerializer()
+
     class Meta:
         model = Post
         fields = '__all__'
@@ -232,7 +226,7 @@ class PaymentSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         data = validated_data.copy()
         payment = Payment.objects.create(**data)
-        payment.total = payment.booking.post.house.price + payment.booking.post.postingprice.value
+        payment.total = payment.booking.post.house.price
         payment.save()
         return payment
 
@@ -246,8 +240,22 @@ class RatingSerializer(serializers.ModelSerializer):
 
 class RatingSerializerShow(serializers.ModelSerializer):
     booking = BookingSerializerShow
-    # point = serializers.CharField()
 
     class Meta:
         model = Rating
+        fields = '__all__'
+
+
+class LikeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Like
+        fields = ('user', 'post')
+
+
+class LikeSerializerShow(serializers.ModelSerializer):
+    user = UserSerializerShow()
+
+    class Meta:
+        model = Like
         fields = '__all__'
