@@ -32,6 +32,48 @@ from django.http import JsonResponse
 
 
 #vnpay
+# def payment(request):
+#     if request.method == 'POST':
+#         # Process input data and build url payment
+#         form = PaymentForm(request.POST)
+#         if form.is_valid():
+#             order_type = form.cleaned_data['order_type']
+#             order_id = form.cleaned_data['order_id']
+#             amount = form.cleaned_data['amount']
+#             order_desc = form.cleaned_data['order_desc']
+#             bank_code = form.cleaned_data['bank_code']
+#             language = form.cleaned_data['language']
+#             ipaddr = get_client_ip(request)
+#             # Build URL Payment
+#             vnp = vnpay()
+#             vnp.requestData['vnp_Version'] = '2.1.0'
+#             vnp.requestData['vnp_Command'] = 'pay'
+#             vnp.requestData['vnp_TmnCode'] = settings.VNPAY_TMN_CODE
+#             vnp.requestData['vnp_Amount'] = amount * 100
+#             vnp.requestData['vnp_CurrCode'] = 'VND'
+#             vnp.requestData['vnp_TxnRef'] = order_id
+#             vnp.requestData['vnp_OrderInfo'] = order_desc
+#             vnp.requestData['vnp_OrderType'] = order_type
+#             # Check language, default: vn
+#             if language and language != '':
+#                 vnp.requestData['vnp_Locale'] = language
+#             else:
+#                 vnp.requestData['vnp_Locale'] = 'vn'
+#                 # Check bank_code, if bank_code is empty, customer will be selected bank on VNPAY
+#             if bank_code and bank_code != "":
+#                 vnp.requestData['vnp_BankCode'] = bank_code
+#
+#             vnp.requestData['vnp_CreateDate'] = datetime.now().strftime('%Y%m%d%H%M%S')
+#             vnp.requestData['vnp_IpAddr'] = ipaddr
+#             vnp.requestData['vnp_ReturnUrl'] = settings.VNPAY_RETURN_URL
+#             vnpay_payment_url = vnp.get_payment_url(settings.VNPAY_PAYMENT_URL, settings.VNPAY_HASH_SECRET_KEY)
+#             print(vnpay_payment_url)
+#                 return redirect(vnpay_payment_url)
+#         else:
+#             print("Form input not validate")
+#     else:
+#         return render(request, "payment.html", {"title": "Thanh toán"})
+
 
 #mail
 class SendMailViewSet(viewsets.ViewSet):
@@ -89,7 +131,7 @@ class HouseViewSet(viewsets.ViewSet):
     serializer_class = serializers.HouseSerializer
     pagination_class = paginators.ASSSPaginator
     parser_classes = [parsers.MultiPartParser]
-    swagger_schema = None
+    # swagger_schema = None
 
     def list(self, request):
         queryset = self.queryset
@@ -157,7 +199,7 @@ class ImageViewSet(viewsets.ViewSet):
     serializer_class = serializers.ImageSerializer
     pagination_class = paginators.ASSSPaginator
     parser_classes = [parsers.MultiPartParser]
-    swagger_schema = None
+    # swagger_schema = None
 
     @swagger_auto_schema(
         operation_description="Push Images House",
@@ -226,14 +268,14 @@ class ImageViewSet(viewsets.ViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class PostViewSet(viewsets.ViewSet, generics.ListAPIView):
+class PostViewSet(viewsets.ViewSet, generics.ListAPIView , generics.RetrieveAPIView):
     queryset = Post.objects.filter(active=True).all()
     serializer_class = serializers.PostSerializer
     pagination_class = paginators.ASSSPaginator
     parser_classes = [parsers.MultiPartParser]
     filter_backends = [DjangoFilterBackend]
     filterset_class = PostFilter
-    swagger_schema = None
+    # swagger_schema = None
 
     def list(self, request):
         queryset = self.queryset
@@ -354,6 +396,7 @@ class PostViewSet(viewsets.ViewSet, generics.ListAPIView):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             serializer.save()
+            serializers.PostSerializerShow(serializer)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -396,17 +439,25 @@ class PostViewSet(viewsets.ViewSet, generics.ListAPIView):
         return Response(serializers.CommentSerializerShow(comments, many=True, context={'request': request}).data, status=status.HTTP_200_OK)
 
 
-class CommentViewSet(viewsets.ViewSet, generics.ListAPIView):
+class CommentViewSet(viewsets.ViewSet, generics.ListAPIView , generics.RetrieveAPIView):
     queryset = Comment.objects.filter(active=True).all()
     serializer_class = serializers.CommentSerializer
     pagination_class = paginators.ASSSPaginator
     parser_classes = [parsers.MultiPartParser]
-    swagger_schema = None
+    # swagger_schema = None
 
     def get_serializer_class(self):
         if self.action == 'list' or self.action == 'retrieve':
             return serializers.CommentSerializerShow
         return serializers.CommentSerializer
+
+        # def get_permissions(self):
+    #     if self.action == 'delete_comment':
+    #         return [CommentOwner()]
+    #     elif self.action == 'change_value_comment':
+    #         return [CommentOwner()]
+    #     # else:
+    #         # return [permissions.IsAuthenticated()]
 
     @swagger_auto_schema(
         operation_description="Create a new Comment",
@@ -511,20 +562,22 @@ class CommentViewSet(viewsets.ViewSet, generics.ListAPIView):
 
         return Response("Change value comment successfully.", status=status.HTTP_200_OK)
 
-    # def get_permissions(self):
-    #     if self.action == 'delete_comment':
-    #         return [CommentOwner()]
-    #     elif self.action == 'change_value_comment':
-    #         return [CommentOwner()]
-    #     # else:
-    #         # return [permissions.IsAuthenticated()]
+    @action(methods=['get'], url_path='comment-rep', detail=True)
+    def delete_comment(self, request, pk):
+        try:
+            parentComment = self.queryset.filter(parentcomment=pk).all()
+        except Comment.DoesNotExist:
+            return Response("This Comment does not exist.", status=status.HTTP_404_NOT_FOUND)
+        serializer = serializers.CommentSerializerShow(parentComment ,many=True).data
+
+        return Response(serializer, status=status.HTTP_200_OK)
 
 
 class DiscountViewSet(viewsets.ModelViewSet):
     queryset = Discount.objects.all()
     serializer_class = serializers.DiscountSerializer
     pagination_class = paginators.ASSSPaginator
-    swagger_schema = None
+    # swagger_schema = None
 
 
 class GetUserViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIView):
@@ -533,7 +586,7 @@ class GetUserViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAP
     parser_classes = [parsers.MultiPartParser]
     filter_backends = [DjangoFilterBackend]
     filterset_class = UserFilter
-    swagger_schema = None
+    # swagger_schema = None
 
     def list(self, request):
         queryset = self.queryset
@@ -554,6 +607,70 @@ class UserViewSet(viewsets.ViewSet):
             return [permissions.IsAuthenticated()]
 
         return [permissions.AllowAny()]
+
+    def update(self, request, pk=None):
+        user = self.get_object(pk)
+        serializer = serializers.UserSerializer(user, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @swagger_auto_schema(
+        operation_description="Reset password",
+        manual_parameters=[
+            openapi.Parameter(
+                name="first_name",
+                in_=openapi.IN_FORM,
+                type=openapi.TYPE_STRING,
+                description="first_name",
+                required=False
+            ),
+            openapi.Parameter(
+                name="last_name",
+                in_=openapi.IN_FORM,
+                type=openapi.TYPE_STRING,
+                description="last_name",
+                required=False
+            ),
+            openapi.Parameter(
+                name="email",
+                in_=openapi.IN_FORM,
+                type=openapi.TYPE_STRING,
+                description="email",
+                required=False
+            ),
+            openapi.Parameter(
+                name="address",
+                in_=openapi.IN_FORM,
+                type=openapi.TYPE_STRING,
+                description="address",
+                required=False
+            ),
+            openapi.Parameter(
+                name="dod",
+                in_=openapi.IN_FORM,
+                type=openapi.TYPE_STRING,
+                description="dod",
+                required=False
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="Password updated successfully"
+            ),
+            400: openapi.Response(
+                description="Invalid old password"
+            )
+        }
+    )
+    def partial_update(self, request, pk=None):
+        user = self.get_object(pk)
+        serializer = serializers.UserSerializerUpdate(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
         operation_description="Create a new user",
@@ -1006,7 +1123,7 @@ class UserViewSet(viewsets.ViewSet):
         if not user:
             return Response(status=status.HTTP_404_NOT_FOUND)
         posts = user.post_set.all()
-        return Response(serializers.PostSerializerShow(posts, many=True, context={'request': request}).data, status=status.HTTP_200_OK)
+        return Response(serializers.CommentSerializer(posts, many=True, context={'request': request}).data, status=status.HTTP_200_OK)
 
 
 class FollowViewSet(viewsets.ViewSet, generics.ListAPIView):
@@ -1204,7 +1321,7 @@ class BookingViewSet(viewsets.ViewSet):
     serializer_class = serializers.BookingSerializer
     pagination_class = paginators.ASSSPaginator
     parser_classes = [parsers.MultiPartParser]
-    swagger_schema = None
+    # swagger_schema = None
 
     @swagger_auto_schema(
         operation_description="Create Booking",
@@ -1404,7 +1521,7 @@ class RoleViewSet(viewsets.ViewSet):
     queryset = Role.objects.exclude(rolename='Admin')
     serializer_class = serializers.RoleSerializer
     pagination_class = paginators.ASSSPaginator
-    swagger_schema = None
+    # swagger_schema = None
 
     def list(self, request):
         queryset = self.queryset
@@ -1416,7 +1533,7 @@ class TypePaymentViewSet(viewsets.ViewSet):
     queryset = TypePayment.objects.all()
     serializer_class = serializers.TypePaymentSerializerShow
     pagination_class = paginators.ASSSPaginator
-    swagger_schema = None
+    # swagger_schema = None
 
     def list(self, request):
         queryset = self.queryset
@@ -1428,7 +1545,7 @@ class PaymentViewSet(viewsets.ViewSet):
     queryset = Payment.objects.filter(active=True).all()
     serializer_class = serializers.PaymentSerializer
     pagination_class = paginators.ASSSPaginator
-    swagger_schema = None
+    # swagger_schema = None
 
     @swagger_auto_schema(
         operation_description="List Payment History",
@@ -1534,7 +1651,7 @@ class RatingViewSet(viewsets.ViewSet):
     queryset = Rating.objects.filter(active=True).all()
     serializer_class = serializers.RatingSerializer
     pagination_class = paginators.ASSSPaginator
-    swagger_schema = None
+    # swagger_schema = None
 
     def list(self, request):
         queryset = self.queryset
@@ -1575,7 +1692,7 @@ class RatingViewSet(viewsets.ViewSet):
 
 
 class PushPostViewSet(viewsets.ViewSet):
-    swagger_schema = None
+    # swagger_schema = None
 
     @action(methods=['post'], detail=False)
     def push_post(self, request):
@@ -1644,12 +1761,10 @@ class PushPostViewSet(viewsets.ViewSet):
             return Response("User not found", status=status.HTTP_404_NOT_FOUND)
 
 
-
 class LikeViewSet(viewsets.ViewSet):
     queryset = Like.objects.filter(active=True).all()
     serializer_class = serializers.LikeSerializer
     pagination_class = paginators.ASSSPaginator
-
     # swagger_schema = None
     def list(self, request):
         queryset = self.queryset

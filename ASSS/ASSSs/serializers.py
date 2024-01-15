@@ -65,6 +65,12 @@ class UserSerializerShow(serializers.ModelSerializer):
     avatar = serializers.SerializerMethodField(method_name='get_avatar')
 
 
+class UserSerializerUpdate(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'first_name', 'last_name', 'email', 'dod', 'address']
+
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -102,10 +108,6 @@ class FollowSerializer(serializers.ModelSerializer):
         model = Follow
         fields = '__all__'
 
-    def create_or_update_follow(self, validated_data):
-        follow = Follow.objects.create(**validated_data)
-        follow.save()
-        return follow
 
 
 class FollowSerializerShow(serializers.ModelSerializer):
@@ -186,8 +188,8 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class CommentSerializerShow(serializers.ModelSerializer):
     user = UserSerializerShow()
-    post = PostSerializerShow()
-    parentcomment = serializers.SerializerMethodField()
+    # post = PostSerializerShow()
+    # parentcomment = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment

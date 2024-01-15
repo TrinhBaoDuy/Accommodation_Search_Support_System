@@ -32,7 +32,7 @@ def count_infor_system():
     list_total_price = Booking.objects.filter(active=True,created_date__year=year, status=1).all().values("post__postingprice")
     total_sum = 0
     for item in list_total_price:
-        total_sum += item['post__postingprice']
+        total_sum += item.get('post__postingprice')
     total_account_previous_year = User.objects.filter(created_date__year=past_year, active=True).count()
     total_account_now_year = User.objects.filter(created_date__year=year, active=True).count()
     growth_rate = ((total_account_now_year*100) / (total_account_previous_year+total_account_now_year))
@@ -43,7 +43,7 @@ def count_infor_system():
         'past_year':  past_year,
         'total_account': total_account,
         'total_post': total_post,
-        'total_price': "${:,.0f}".format(total_sum_usd),
+        'total_price': "${:,.0f}".format(total_sum),
         'growth_rate': round(growth_rate)
     }
 

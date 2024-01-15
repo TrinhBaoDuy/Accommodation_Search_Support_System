@@ -4,7 +4,7 @@ from django.utils.deprecation import MiddlewareMixin
 class OAuthMiddleware(MiddlewareMixin):
 
     def process_request(self, request):
-        print("do")
+        # print("do")
         if request.path_info == '/o/token/' and request.method == 'POST':
             request.POST = request.POST.copy()
             request.POST['client_id'] = 'UXTi69lodcxqmENTZITNy3e0EHIJ64UzUqnb9Hu4'
