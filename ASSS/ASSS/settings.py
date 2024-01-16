@@ -137,8 +137,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'asssdb',
         'USER': 'root',
-        # 'PASSWORD': 'Admin@123',
-        'PASSWORD': 'van0826523430ph',
+        'PASSWORD': 'Admin@123',
+        # 'PASSWORD': 'van0826523430ph',
         'HOST': ''  # mặc định localhost
     }
 }
