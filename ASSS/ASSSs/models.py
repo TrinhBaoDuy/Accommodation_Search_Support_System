@@ -1,4 +1,4 @@
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, User
 from django.db import models
 from django.utils import timezone
 from cloudinary.models import CloudinaryField
@@ -146,6 +146,15 @@ class Like(BaseModel):
     status = models.BooleanField(default=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_query_name="likes")
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_query_name="likes")
+
+    class Meta:
+        unique_together = ('user', 'post')
+
+
+class Notice(BaseModel):
+    status = models.BooleanField(default=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
 
     class Meta:
         unique_together = ('user', 'post')

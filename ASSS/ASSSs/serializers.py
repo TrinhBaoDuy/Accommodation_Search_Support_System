@@ -68,7 +68,7 @@ class UserSerializerShow(serializers.ModelSerializer):
 class UserSerializerUpdate(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'email', 'dod', 'address']
+        fields = ['id', 'first_name', 'last_name', 'email', 'dob', 'address']
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -260,4 +260,20 @@ class LikeSerializerShow(serializers.ModelSerializer):
 
     class Meta:
         model = Like
+        fields = '__all__'
+
+
+class NoticeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Notice
+        fields = '__all__'
+
+
+class NoticeSerializerShow(serializers.ModelSerializer):
+    user = UserSerializerShow()
+    post = PostSerializerShow()
+
+    class Meta:
+        model = Notice
         fields = '__all__'

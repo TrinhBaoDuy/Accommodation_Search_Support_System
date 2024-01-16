@@ -21,6 +21,7 @@ router.register('users', views.GetUserViewSet, basename='users')
 router.register('likes', views.LikeViewSet, basename='likes')
 router.register('paypal', views.PayPalViewSet, basename='paypal')
 router.register('send_mail', views.SendMailViewSet, basename='send_mail')
+router.register('notices', views.NoticeViewSet, basename='notices')
 urlpatterns = [
     path('', include(router.urls)),
     path('complete/', views.PayPalViewSet.paymentComplete, name="complete"),

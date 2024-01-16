@@ -45,7 +45,6 @@ class ASSSAdminSite(admin.AdminSite):
         })
 
 
-
 class RoleAdmin(admin.ModelAdmin):
     list_display = ['id', 'rolename']
     search_fields = ['rolename']

@@ -6,6 +6,7 @@ import paypalrestsdk
 import requests
 from aiohttp.web_routedef import view
 from django.core import mail
+from django.db import transaction
 from django.shortcuts import redirect, render
 from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import EmailMultiAlternatives, EmailMessage
@@ -435,11 +436,11 @@ class PostViewSet(viewsets.ViewSet, generics.ListAPIView , generics.RetrieveAPIV
         post = self.queryset.filter(id=pk).first()
         if not post:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        comments = post.comment_set.all().order_by('-created_date')
+        comments = post.comment_set.all().filter(active=True).order_by('-created_date')
         return Response(serializers.CommentSerializerShow(comments, many=True, context={'request': request}).data, status=status.HTTP_200_OK)
 
 
-class CommentViewSet(viewsets.ViewSet, generics.ListAPIView , generics.RetrieveAPIView):
+class CommentViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIView, generics.DestroyAPIView):
     queryset = Comment.objects.filter(active=True).all()
     serializer_class = serializers.CommentSerializer
     pagination_class = paginators.ASSSPaginator
@@ -480,52 +481,18 @@ class CommentViewSet(viewsets.ViewSet, generics.ListAPIView , generics.RetrieveA
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @swagger_auto_schema(
-        operation_description="Delete Comment",
-        manual_parameters=[
-            openapi.Parameter(
-                name="pk",
-                in_=openapi.IN_FORM,
-                type=openapi.TYPE_NUMBER,
-                description="Comment Id",
-                required=True,
-            )
-        ],
-        responses={
-            200: openapi.Response(
-                description="Successfully",
-            ),
-            400: openapi.Response(
-                description="Bad request",
-            ),
-        }
-    )
-    @action(methods=['post'], url_path='delete-comment', detail=False)
-    def delete_comment(self, request):
-        pk = request.data.get('pk')
-
-        try:
-            comment = self.queryset.get(id=pk)
-        except Comment.DoesNotExist:
-            return Response("This Comment does not exist.", status=status.HTTP_404_NOT_FOUND)
-
-        if comment.active == 0:
-            return Response("The comment has been deleted", status=status.HTTP_404_NOT_FOUND)
-
-        comment.delete()
-
-        return Response("Delete comment successfully.", status=status.HTTP_200_OK)
+    # @action(methods=['delete'], url_path='delete-comment', detail=True)
+    # def delete_comment(self, request, pk):
+    #     try:
+    #         comment = self.get_object()
+    #     except Comment.DoesNotExist:
+    #         return Response("This comment does not exist.", status=status.HTTP_404_NOT_FOUND)
+    #     comment.delete_permanently()
+    #     return Response("Delete comment successfully.", status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
         operation_description="Change value Comment",
         manual_parameters=[
-            openapi.Parameter(
-                name="pk",
-                in_=openapi.IN_FORM,
-                type=openapi.TYPE_INTEGER,
-                description="Comment Id",
-                required=True,
-            ),
             openapi.Parameter(
                 name="value",
                 in_=openapi.IN_FORM,
@@ -543,11 +510,9 @@ class CommentViewSet(viewsets.ViewSet, generics.ListAPIView , generics.RetrieveA
             ),
         }
     )
-    @action(methods=['patch'], url_path='change-value-comment', detail=False)
-    def change_value_comment(self, request):
-        pk = request.data.get('pk')
+    @action(methods=['patch'], url_path='change-value-comment', detail=True)
+    def change_value_comment(self, request, pk):
         value = request.data.get('value')
-
         try:
             comment = self.queryset.get(id=pk)
 
@@ -557,9 +522,8 @@ class CommentViewSet(viewsets.ViewSet, generics.ListAPIView , generics.RetrieveA
         if comment.active == 0:
             return Response("The comment has been deleted", status=status.HTTP_404_NOT_FOUND)
 
-        self.serializer_class().change_value_comment(comment=comment, value=value)
-        comment.refresh_from_db()
-
+        comment.value = value
+        comment.save()
         return Response("Change value comment successfully.", status=status.HTTP_200_OK)
 
     @action(methods=['get'], url_path='comment-rep', detail=True)
@@ -594,6 +558,14 @@ class GetUserViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAP
         serializer = serializers.UserSerializerShow(filtered_queryset, many=True)
         return Response(serializer.data)
 
+    @action(methods=['get'], detail=True, url_path='notices')
+    def notices(self, request, pk):
+        user = self.queryset.filter(id=pk).first()
+        if not user:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        notices = Notice.objects.filter(user=user, active=True).all()
+        return Response(serializers.NoticeSerializerShow(notices, many=True, context={'request': request}).data, status=status.HTTP_200_OK)
+
 
 class UserViewSet(viewsets.ViewSet):
     queryset = User.objects.filter(active=True).all()
@@ -609,7 +581,7 @@ class UserViewSet(viewsets.ViewSet):
         return [permissions.AllowAny()]
 
     def update(self, request, pk=None):
-        user = self.get_object(pk)
+        user = User.objects.get(pk=pk)
         serializer = serializers.UserSerializer(user, data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -665,7 +637,7 @@ class UserViewSet(viewsets.ViewSet):
         }
     )
     def partial_update(self, request, pk=None):
-        user = self.get_object(pk)
+        user = User.objects.get(pk=pk)
         serializer = serializers.UserSerializerUpdate(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -765,8 +737,8 @@ class UserViewSet(viewsets.ViewSet):
     @action(methods=['get'], url_name='my_infor_count', detail=False)
     def my_infor_count(self, request):
         user = request.user,
-        count_follower = Follow.objects.filter(followeduser_id=request.user.id, active=True).count()
-        count_following = Follow.objects.filter(follower_id=request.user.id, active=True).count()
+        count_follower = Follow.objects.filter(followeduser_id=request.user.id, follower__active=True, active=True).count()
+        count_following = Follow.objects.filter(follower_id=request.user.id, followeduser__active=True, active=True).count()
         count_post = Post.objects.filter(user__id=request.user.id, active=True).count()
         return Response({'count_follower': count_follower, 'count_following': count_following, 'count_post':count_post}, status=status.HTTP_200_OK)
 
@@ -776,8 +748,8 @@ class UserViewSet(viewsets.ViewSet):
             user = self.queryset.get(pk=pk)
         except User.DoesNotExist:
             return Response("User does not exist",status=status.HTTP_404_NOT_FOUND)
-        count_follower = Follow.objects.filter(followeduser_id=pk, active=True).count()
-        count_following = Follow.objects.filter(follower_id=pk, active=True).count()
+        count_follower = Follow.objects.filter(followeduser__id=pk, follower__active=True, active=True).count()
+        count_following = Follow.objects.filter(follower__id=pk, followeduser__active=True, active=True).count()
         count_post = Post.objects.filter(user__id=pk, active=True).count()
         return Response({'count_follower': count_follower, 'count_following': count_following, 'count_post': count_post}, status=status.HTTP_200_OK)
 
@@ -862,7 +834,7 @@ class UserViewSet(viewsets.ViewSet):
             ),
         }
     )
-    @action(methods=['post'], url_path='Send-OTP-forgot-password', detail=False)
+    @action(methods=['post'], url_path='Send-OTP', detail=False)
     def send_otp(self, request):
         phone_number = request.data.get('phone_number')
         Country_Code='+84'
@@ -871,7 +843,7 @@ class UserViewSet(viewsets.ViewSet):
         #     return Response("User with this phone number does not exist.", status=status.HTTP_400_BAD_REQUEST)
 
         account_sid = 'AC1c77c96392cffe33999c3ca1b6635e7d'
-        auth_token = '7f0a1758e5a37d3bf2bcb2b9a5aa8158'
+        auth_token = 'e478d9a5f2a6f19ba55996916788b54e'
         from_number = '+17247172226'
         verify_sid = 'VAa304166947e6f8856eb337621447985b'
         verified_number = "+84388853371"
@@ -1133,6 +1105,16 @@ class FollowViewSet(viewsets.ViewSet, generics.ListAPIView):
     parser_classes = [parsers.MultiPartParser]
     # swagger_schema = None
 
+    @action(methods=['get'], detail=True, url_path='check')
+    def check(self, request, pk):
+        current_user = request.user
+        user = self.get_object()
+        check = self.queryset.filter(followeduser=user, follower=current_user)
+        if check.exists():
+            return Response({'data': True})
+        else:
+            return Response({'data': False})
+
     @swagger_auto_schema(
         operation_description="Get Followers By Current User",
         manual_parameters=[
@@ -1195,7 +1177,7 @@ class FollowViewSet(viewsets.ViewSet, generics.ListAPIView):
     def followeduser(self, request, pk):
         user = User.objects.get(pk=pk)
         if user:
-            followed_users = self.queryset.filter(follower=user).all()
+            followed_users = self.queryset.filter(follower=user, followeduser__active=True).all()
             if followed_users:
                 serializer = serializers.FollowSerializerShow(followed_users, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
@@ -1208,7 +1190,7 @@ class FollowViewSet(viewsets.ViewSet, generics.ListAPIView):
     def follower(self, request, pk):
         user = User.objects.get(pk=pk)
         if user:
-            follower = self.queryset.filter(followeduser=user).all()
+            follower = self.queryset.filter(followeduser=user, follower__active=True).all()
             if follower:
                 serializer = serializers.FollowSerializerShow(follower, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
@@ -1766,6 +1748,7 @@ class LikeViewSet(viewsets.ViewSet):
     serializer_class = serializers.LikeSerializer
     pagination_class = paginators.ASSSPaginator
     # swagger_schema = None
+
     def list(self, request):
         queryset = self.queryset
         serializer = serializers.LikeSerializerShow(queryset, many=True)
@@ -1789,4 +1772,26 @@ class LikeViewSet(viewsets.ViewSet):
             return Response("Un Like", status=status.HTTP_204_NO_CONTENT)
 
         return Response("Like", status=status.HTTP_201_CREATED)
+
+
+class NoticeViewSet(viewsets.ViewSet,):
+    queryset = Notice.objects.filter(active=True).all()
+    serializer_class = serializers.NoticeSerializer
+    pagination_class = paginators.ASSSPaginator
+
+    def list(self, request):
+        queryset = self.queryset
+        serializer = serializers.NoticeSerializerShow(queryset, many=True)
+        return Response(serializer.data)
+
+    def create(self, request):
+        post_id = request.data.get('post_id')
+        post = Post.objects.get(pk=post_id, active=True)
+        host = post.user
+        followers = Follow.objects.filter(followeduser=host, follower__active=True).all()
+        with transaction.atomic():  #dam bao duy nhat
+            for follower in followers:
+                user = follower.follower
+                notice = Notice.objects.create(post=post, user=user)
+        return Response(status=status.HTTP_201_CREATED)
 
