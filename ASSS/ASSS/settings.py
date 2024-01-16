@@ -137,7 +137,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'asssdb',
         'USER': 'root',
-        'PASSWORD': 'Admin@123',
+        # 'PASSWORD': 'Admin@123',
+        'PASSWORD': 'van0826523430ph',
         'HOST': ''  # mặc định localhost
     }
 }
@@ -204,7 +205,11 @@ INTERNAL_IPS = [
 CLIENT_ID = 'UXTi69lodcxqmENTZITNy3e0EHIJ64UzUqnb9Hu4'
 CLIENT_SECRET = 'oIulUY0kY7FIYDIjCmzUlKi3u6lHhCmdVYAJxLaEzJpmX3hnZH51uyhTeMbhmRIJk0fUPFMiUggebg2JkxwFviYBPK9bejcaxlyK67GImarvBjGUCeD5rrL9O0EnrH38'
 CODE_TWILLO = 'SBUJZ9X1Q1GJ5GAX1X9MMM94'
-# settings.py
+
+TWILLO_AUTH_TOKEN = 'e478d9a5f2a6f19ba55996916788b54e'
+TWILLO_ACCOUNT_SID = 'AC1c77c96392cffe33999c3ca1b6635e7d'
+TWILLO_VENRIFY_SID = 'VAa304166947e6f8856eb337621447985b'
+TWILLO_PHONE_NUMBER = '17247172226'
 
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',

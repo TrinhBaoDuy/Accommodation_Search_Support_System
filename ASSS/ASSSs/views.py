@@ -564,7 +564,12 @@ class GetUserViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAP
         if not user:
             return Response(status=status.HTTP_404_NOT_FOUND)
         notices = Notice.objects.filter(user=user, active=True).all()
-        return Response(serializers.NoticeSerializerShow(notices, many=True, context={'request': request}).data, status=status.HTTP_200_OK)
+        serialized_data = serializers.NoticeSerializerShow(notices, many=True, context={'request': request}).data
+        response_data = {
+            'notices': serialized_data,
+            'count': notices.count()
+        }
+        return Response(response_data, status=status.HTTP_200_OK)
 
 
 class UserViewSet(viewsets.ViewSet):
@@ -842,10 +847,10 @@ class UserViewSet(viewsets.ViewSet):
         # if not u:
         #     return Response("User with this phone number does not exist.", status=status.HTTP_400_BAD_REQUEST)
 
-        account_sid = 'AC1c77c96392cffe33999c3ca1b6635e7d'
-        auth_token = 'e478d9a5f2a6f19ba55996916788b54e'
+        account_sid = settings.TWILLO_ACCOUNT_SID
+        auth_token = settings.TWILLO_AUTH_TOKEN
         from_number = '+17247172226'
-        verify_sid = 'VAa304166947e6f8856eb337621447985b'
+        verify_sid = settings.TWILLO_VENRIFY_SID
         verified_number = "+84388853371"
         client = Client(account_sid, auth_token)
 
@@ -904,10 +909,10 @@ class UserViewSet(viewsets.ViewSet):
         if not u:
             return Response("User with this phone number does not exist.", status=status.HTTP_400_BAD_REQUEST)
 
-        account_sid = 'AC1c77c96392cffe33999c3ca1b6635e7d'
-        auth_token = '7f0a1758e5a37d3bf2bcb2b9a5aa8158'
-        from_number = '+17247172226'
-        verify_sid = 'VAa304166947e6f8856eb337621447985b'
+        account_sid = settings.TWILLO_ACCOUNT_SID
+        auth_token = settings.TWILLO_AUTH_TOKEN
+        from_number = settings.TWILLO_PHONE_NUMBER
+        verify_sid = settings.TWILLO_VENRIFY_SID
         verified_number = "+84388853371"
         client = Client(account_sid, auth_token)
 
@@ -953,10 +958,10 @@ class UserViewSet(viewsets.ViewSet):
         phone_number = int(user.phonenumber)
         Country_Code='+84'
 
-        account_sid = 'AC1c77c96392cffe33999c3ca1b6635e7d'
-        auth_token = '7f0a1758e5a37d3bf2bcb2b9a5aa8158'
-        from_number = '+17247172226'
-        verify_sid = 'VAa304166947e6f8856eb337621447985b'
+        account_sid = settings.TWILLO_ACCOUNT_SID
+        auth_token = settings.TWILLO_AUTH_TOKEN
+        from_number = settings.TWILLO_PHONE_NUMBER
+        verify_sid = settings.TWILLO_VENRIFY_SID
         verified_number = "+84388853371"
         client = Client(account_sid, auth_token)
 
@@ -1001,10 +1006,10 @@ class UserViewSet(viewsets.ViewSet):
         user = request.user
         phonenumbers = str(int(user.phonenumber))
 
-        account_sid = 'AC1c77c96392cffe33999c3ca1b6635e7d'
-        auth_token = '7f0a1758e5a37d3bf2bcb2b9a5aa8158'
-        from_number = '+17247172226'
-        verify_sid = 'VAa304166947e6f8856eb337621447985b'
+        account_sid = settings.TWILLO_ACCOUNT_SID
+        auth_token = settings.TWILLO_AUTH_TOKEN
+        from_number = settings.TWILLO_PHONE_NUMBER
+        verify_sid = settings.TWILLO_VENRIFY_SID
         verified_number = "+84388853371"
 
         client = Client(account_sid, auth_token)
@@ -1794,4 +1799,16 @@ class NoticeViewSet(viewsets.ViewSet,):
                 user = follower.follower
                 notice = Notice.objects.create(post=post, user=user)
         return Response(status=status.HTTP_201_CREATED)
+
+    def destroy(self, request, pk):
+        notice = Notice.objects.get(pk=pk)
+        notice.delete_permanently()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def partial_update(self, request, pk):
+        notice = Notice.objects.get(pk=pk)
+        notice.status = True
+        notice.save()
+        return Response(status=status.HTTP_200_OK)
 
