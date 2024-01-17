@@ -294,8 +294,15 @@ class PostViewSet(viewsets.ViewSet, generics.ListAPIView , generics.RetrieveAPIV
     @action(methods=['get'], url_name='list-post-accepted', detail=False)
     def list_post_accepted(self, request):
         queryset = self.queryset.filter(status=1).filter(postingdate__lte=datetime.datetime.now(), expirationdate__gte=datetime.datetime.now()).order_by('-postingdate').all()
-        serializer = serializers.PostSerializerShow(queryset, many=True)
-        return Response(serializer.data)
+        # serializer = serializers.PostSerializerShow(queryset, many=True)
+        info = []
+        for post in queryset:
+            information = {
+                'post': serializers.PostSerializerShow(post).data,
+                'count': Like.objects.filter(post=post).count()
+            }
+            info.append(information)
+        return Response(info, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
         operation_description="Accept Post",
