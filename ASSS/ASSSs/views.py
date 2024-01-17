@@ -7,6 +7,7 @@ import requests
 from aiohttp.web_routedef import view
 from django.core import mail
 from django.db import transaction
+from django.db.models import Count
 from django.shortcuts import redirect, render
 from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import EmailMultiAlternatives, EmailMessage
@@ -291,10 +292,15 @@ class PostViewSet(viewsets.ViewSet, generics.ListAPIView , generics.RetrieveAPIV
         serializer = serializers.PostSerializerShow(queryset, many=True)
         return Response(serializer.data)
 
+    @action(methods=['get'], url_name='top-posts', detail=False)
+    def top_posts(self, request):
+        queryset = self.queryset.annotate(like_count=Count('likes')).order_by('-like_count')[:10]
+        serializer = serializers.PostSerializerShow(queryset, many=True)
+        return Response(serializer.data)
+
     @action(methods=['get'], url_name='list-post-accepted', detail=False)
     def list_post_accepted(self, request):
         queryset = self.queryset.filter(status=1).filter(postingdate__lte=datetime.datetime.now(), expirationdate__gte=datetime.datetime.now()).order_by('-postingdate').all()
-        # serializer = serializers.PostSerializerShow(queryset, many=True)
         info = []
         for post in queryset:
             information = {
