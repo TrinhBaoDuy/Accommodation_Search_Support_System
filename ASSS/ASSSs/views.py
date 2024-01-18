@@ -1694,8 +1694,7 @@ class RatingViewSet(viewsets.ViewSet):
 class PushPostViewSet(viewsets.ViewSet):
     # swagger_schema = None
 
-    @action(methods=['post'], detail=False)
-    def push_post(self, request):
+    def create(self, request):
         user = request.user
         if isinstance(user, User):
             print(user.id)
@@ -1728,10 +1727,10 @@ class PushPostViewSet(viewsets.ViewSet):
                 post_data = {
                     'topic': request.data.get("topic"),
                     'describe': request.data.get("describe"),
-                    # 'postingdate': request.data.get("postingdate"),
-                    # 'expirationdate': request.data.get("expirationdate"),
-                    'postingdate': '2024-01-10',
-                    'expirationdate': '2024-01-20',
+                    'postingdate': request.data.get("postingdate"),
+                    'expirationdate': request.data.get("expirationdate"),
+                    # 'postingdate': '2024-01-10',
+                    # 'expirationdate': '2024-01-20',
                     'status': 0,
                     'house': House.objects.get(pk=house.id),
                     'user': User.objects.get(pk=user.id),
@@ -1828,7 +1827,7 @@ class LikeViewSet(viewsets.ViewSet):
 
         if not user or not post:
             return Response("Not Found", status=status.HTTP_404_NOT_FOUND)
-        
+
         try:
             check = Like.objects.get(user=user, post=post, status=True)
 
@@ -1836,8 +1835,6 @@ class LikeViewSet(viewsets.ViewSet):
             return Response(False, status=status.HTTP_204_NO_CONTENT)
 
         return Response(True, status=status.HTTP_200_OK)
-
-
 
 
 class NoticeViewSet(viewsets.ViewSet,):
