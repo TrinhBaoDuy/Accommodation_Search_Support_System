@@ -1791,6 +1791,54 @@ class LikeViewSet(viewsets.ViewSet):
 
         return Response("Like", status=status.HTTP_201_CREATED)
 
+    # @swagger_auto_schema(
+    #     operation_description="Check Like",
+    #     manual_parameters=[
+    #         openapi.Parameter(
+    #             name="Authorization",
+    #             in_=openapi.IN_HEADER,
+    #             type=openapi.TYPE_STRING,
+    #             description="Bearer token",
+    #             required=True,
+    #             default="Bearer your_token_here"
+    #         ),
+    #         openapi.Parameter(
+    #             name="post_id",
+    #             in_=openapi.IN_FORM,
+    #             type=openapi.TYPE_INTEGER,
+    #             description="post_id",
+    #             required=True,
+    #         )
+    #     ],
+    #     responses={
+    #         200: openapi.Response(
+    #             description="Successfully",
+    #         ),
+    #         404: openapi.Response(
+    #             description="Not Found"
+    #         )
+    #     }
+    # )
+    @action(methods=['get'], url_name='check_like', detail=False)
+    def check_like(self, request):
+        user = request.user
+        post_id = request.data.get('post_id')
+
+        post = Post.objects.get(pk=post_id)
+
+        if not user or not post:
+            return Response("Not Found", status=status.HTTP_404_NOT_FOUND)
+        
+        try:
+            check = Like.objects.get(user=user, post=post, status=True)
+
+        except Like.DoesNotExist:
+            return Response(False, status=status.HTTP_204_NO_CONTENT)
+
+        return Response(True, status=status.HTTP_200_OK)
+
+
+
 
 class NoticeViewSet(viewsets.ViewSet,):
     queryset = Notice.objects.filter(active=True).all()
