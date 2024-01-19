@@ -557,7 +557,12 @@ class DiscountViewSet(viewsets.ModelViewSet):
     # swagger_schema = None
 
 
-class GetUserViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIView):
+class GetUserById(viewsets.ViewSet, generics.RetrieveAPIView):
+    queryset = User.objects.filter(active=True).all()
+    serializer_class = serializers.UserSerializerShow
+
+
+class GetUserViewSet(viewsets.ViewSet, generics.ListAPIView):
     queryset = User.objects.filter(active=True).all()
     serializer_class = serializers.UserSerializerShow
     parser_classes = [parsers.MultiPartParser]
