@@ -5,6 +5,7 @@ from django.urls import path
 
 router = routers.DefaultRouter()
 router.register('houses', views.HouseViewSet, basename='houses')
+router.register('house', views.GetHouse, basename='house')
 router.register('images', views.ImageViewSet, basename='images')
 router.register('posts', views.PostViewSet, basename='posts')
 router.register('users', views.UserViewSet, basename='users')

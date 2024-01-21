@@ -285,3 +285,7 @@ def top_host_active():
         info.append(user_info)
 
     return info
+
+def get_user_inactive():
+    user = User.objects.filter(active=False).all()
+    return result

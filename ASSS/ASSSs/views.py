@@ -13,16 +13,14 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import EmailMultiAlternatives, EmailMessage
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from paypal.standard.forms import PayPalPaymentsForm
 from rest_framework.decorators import action, permission_classes
 from requests_oauthlib import OAuth2Session
 from ASSS import settings
 from ASSSs import serializers, paginators
-from .permissions import *
+from ASSSs import perms
 from ASSSs.models import *
-from rest_framework import viewsets, generics, status, permissions, parsers
+from rest_framework import viewsets, generics, status, parsers, permissions
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
 from twilio.rest import Client
 import random
 import datetime
@@ -128,6 +126,11 @@ class PayPalViewSet(viewsets.ViewSet):
         return JsonResponse('Payment completed!', safe=False)
 
 
+class GetHouse(viewsets.ViewSet, generics.RetrieveAPIView):
+    queryset = House.objects.filter(active=True).all()
+    serializer_class = serializers.HouseSerializer
+
+
 class HouseViewSet(viewsets.ViewSet):
     queryset = House.objects.filter(active=True).all()
     serializer_class = serializers.HouseSerializer
@@ -155,37 +158,6 @@ class HouseViewSet(viewsets.ViewSet):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    @swagger_auto_schema(
-        method='get',
-        operation_description="Get a list of houses",
-        manual_parameters=[
-            openapi.Parameter(
-                name="address",
-                in_=openapi.IN_QUERY,
-                type=openapi.TYPE_STRING,
-                description="address",
-                required=False,
-            ),
-        ],
-        responses={
-            200: serializers.HouseSerializer(many=True),
-            400: "Bad request"
-        }
-    )
-    @action(methods=['get'], detail=False)
-    def get_queryset(self, request):
-        queryset = self.queryset
-
-        address = request.query_params.get("address")
-        if address:
-            queryset = queryset.filter(address__icontains=address)
-
-        acreage = request.query_params.get("acreage")
-        if acreage:
-            queryset = queryset.filter(acreage__icontains=acreage)
-
-        return Response(serializers.HouseSerializer(queryset, many=True).data, status=status.HTTP_200_OK)
 
     @action(methods=['get'], detail=True, url_path='images')
     def images(self, request, pk):
@@ -285,6 +257,17 @@ class PostViewSet(viewsets.ViewSet, generics.ListAPIView , generics.RetrieveAPIV
         # queryset = self.filterset_class(self.queryset)
         serializer = serializers.PostSerializerShow(filtered_queryset, many=True)
         return Response(serializer.data)
+
+    @action(methods=['get'], url_name='count_like', detail=True)
+    def count_like(self, request, pk):
+        try:
+            post = self.queryset.get(pk=pk)
+
+        except Post.DoesNotExist:
+            return Response("This post does not exist.", status=status.HTTP_404_NOT_FOUND)
+
+        count = Like.objects.filter(post=post).count()
+        return Response(count, status=status.HTTP_200_OK)
 
     @action(methods=['get'], url_name='list-post-not-accepted', detail=False)
     def list_post_not_accepted(self, request):
@@ -458,20 +441,19 @@ class CommentViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAP
     serializer_class = serializers.CommentSerializer
     pagination_class = paginators.ASSSPaginator
     parser_classes = [parsers.MultiPartParser]
-    # swagger_schema = None
 
     def get_serializer_class(self):
         if self.action == 'list' or self.action == 'retrieve':
             return serializers.CommentSerializerShow
         return serializers.CommentSerializer
 
-        # def get_permissions(self):
-    #     if self.action == 'delete_comment':
-    #         return [CommentOwner()]
-    #     elif self.action == 'change_value_comment':
-    #         return [CommentOwner()]
-    #     # else:
-    #         # return [permissions.IsAuthenticated()]
+    def get_permissions(self):
+        if self.action.__eq__('destroy'):
+            return [perms.CommentOwner()]
+        elif self.action.__eq__('change_value_comment'):
+            return [perms.CommentOwner()]
+        else:
+            return [permissions.IsAuthenticated()]
 
     @swagger_auto_schema(
         operation_description="Create a new Comment",
