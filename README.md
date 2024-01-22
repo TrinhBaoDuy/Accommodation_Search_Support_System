@@ -1,1 +1,1 @@
-# Accommodation_Search_Support_System
+# Accommodation Search Support System
