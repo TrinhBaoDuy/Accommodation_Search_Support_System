@@ -35,6 +35,7 @@ class ASSSAdminSite(admin.AdminSite):
             'count_post': dao.count_post(),
             'year_data': dao.get_year(),
             'top_host_active': dao.top_host_active(),
+            'u_2m': dao.get_user_inactive_more_than_2m(),
             'statistics_type': request.GET.get('statistics_type', 'Statistics_month'),
             'selected_year': request.GET.get('selected_year', '2024'),
         })

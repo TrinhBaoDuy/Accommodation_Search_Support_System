@@ -120,6 +120,7 @@ def top_hosts_post_a_lot():
         point = point/count
         list_infor.append({'id': u.id, 'avg': point,'user':u})
 
+    print(list_infor[0])
     return list_infor
 
 
@@ -142,6 +143,7 @@ def top_hosts_follower_a_lot():
         point = point/count
         list_infor.append({'id': u.id, 'avg': point,'user':u})
 
+    # print(list_infor)
     return list_infor
 
 
@@ -259,8 +261,8 @@ def count_users_each_quarter_of_the_year(params={}):
                 quarter_data['not_active_users_role_is_user'] += month_data['not_active_users_role_is_user']
         result.append(quarter_data)
 
-    print('--------------MMMMMMMMMMMMMMMMMMMMMMMM---RRRRRRRRRRRRRRRRRRRR-----------')
-    print(result)
+    # print('--------------MMMMMMMMMMMMMMMMMMMMMMMM---RRRRRRRRRRRRRRRRRRRR-----------')
+    # print(result)
     return result
 
 
@@ -286,6 +288,17 @@ def top_host_active():
 
     return info
 
-def get_user_inactive():
-    user = User.objects.filter(active=False).all()
-    return result
+
+def get_user_inactive_more_than_2m():
+    current_date = datetime.datetime.now().date()
+    if current_date.month > 2:
+        two_months_ago = current_date.replace(month=current_date.month - 2)
+    else:
+        # Nếu tháng hiện tại là tháng 1, điều chỉnh năm lại thành năm trước và tháng là tháng 12
+        two_months_ago = current_date.replace(year=current_date.year - 1, month=12)
+    user = User.objects.filter(active=False,  deleted_date__lt=two_months_ago).all()
+    count = User.objects.filter(active=False,  deleted_date__lt=two_months_ago).count()
+    return {
+        'user': user,
+        'count': count
+    }

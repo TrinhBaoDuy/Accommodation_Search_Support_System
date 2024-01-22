@@ -367,14 +367,6 @@ class PostViewSet(viewsets.ViewSet, generics.ListAPIView , generics.RetrieveAPIV
 
         return Response("Not Accept this post successfully", status=status.HTTP_200_OK)
 
-    def get_queryset(self):
-        queries = self.queryset
-
-        q = self.request.query_params.get("address")
-        if q:
-            queries = queries.filter(house__address__icontains=q)
-        return queries
-
     @swagger_auto_schema(
         operation_description="Create a new post",
         request_body=serializers.PostSerializer,

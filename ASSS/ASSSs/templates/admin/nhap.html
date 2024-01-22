@@ -177,7 +177,7 @@
 
 				<div class="row">
 					<div class="col-lg-4 col-md-6 mb-20">
-						<div class="card-box height-100-p pd-20 min-height-200px">
+						<div class="card-box height-100-p pd-20 min-height-200px" style="color: black">
 							<div class="d-flex justify-content-between pb-10">
 								<div class="h5 mb-0">Top Hosts</div>
 								<div class="font-12">
@@ -231,7 +231,7 @@
 						</div>
 					</div>
 					<div class="col-lg-4 col-md-12 mb-20">
-						<div class="card-box height-100-p pd-20 min-height-200px">
+						<div class="card-box height-100-p pd-20 min-height-200px" style="color: black">
 							<div class="d-flex justify-content-between pb-10">
 								<div class="h5 mb-0">Host With The Most Followers</div>
 								<div class="font-12">
@@ -321,45 +321,53 @@
 				</div>
 
 				<div class="title pb-20 pt-20">
-					<h2 class="h3 mb-0">Quick Start</h2>
+					<h2 class="h3 mb-0">Contact</h2>
 				</div>
 
 				<div class="row">
 					<div class="col-md-4 mb-20">
-						<a href="#" class="card-box d-block mx-auto pd-20 text-secondary">
+						<a href="https://www.paypal.com/vn/home" class="card-box d-block mx-auto pd-20 text-secondary" >
 							<div class="img pb-30">
-								<img src="vendors/images/medicine-bro.svg" alt="" />
+								<iframe src="https://giphy.com/embed/3oEduJmTLJlAxYqN7W"  width="100%" frameBorder="0" class="giphy-embed" allowFullScreen></iframe>
 							</div>
 							<div class="content">
-								<h3 class="h4">Services</h3>
-								<p class="max-width-200">
-									We provide superior health care in a compassionate maner
-								</p>
+								<h3 class="h4">Account inactive for 2 months : {{ u_2m.count }}</h3>
+								<div style="max-height: 150px; overflow: auto;">
+								{% for toph in u_2m.user %}
+									<div style="border: 2px solid #000000; padding:5px; margin:4px">
+										<div class="mb-10">Name: {{toph.first_name}} {{toph.last_name}}</div>
+										<div class="mb-10">Phone number : {{toph.phonenumber}}</div>
+										<div class="mb-10">Inactive date from :{{ toph.deleted_date}}</div>
+									</div>
+								{% endfor %}
+								</div>
 							</div>
 						</a>
 					</div>
 					<div class="col-md-4 mb-20">
-						<a href="#" class="card-box d-block mx-auto pd-20 text-secondary">
+						<a href="https://www.google.com/maps/place/Tr%C6%B0%E1%BB%9Dng+%C4%90%E1%BA%A1i+h%E1%BB%8Dc+M%E1%BB%9F+TP.HCM+-+C%C6%A1+s%E1%BB%9F+1/@10.7763337,106.6876542,17z/data=!3m1!4b1!4m6!3m5!1s0x31752f3ae35e3725:0x20c5174a47f97be3!8m2!3d10.7763284!4d106.6902291!16s%2Fm%2F02qqlv4?entry=ttu" class="card-box d-block mx-auto pd-20 text-secondary">
 							<div class="img pb-30">
-								<img src="vendors/images/remedy-amico.svg" alt="" />
-							</div>
-							<div class="content">
-								<h3 class="h4">Medications</h3>
-								<p class="max-width-200">
-									Look for prescription and over-the-counter drug information.
-								</p>
-							</div>
-						</a>
-					</div>
-					<div class="col-md-4 mb-20">
-						<a href="#" class="card-box d-block mx-auto pd-20 text-secondary">
-							<div class="img pb-30">
-								<img src="vendors/images/paper-map-cuate.svg" alt="" />
+								<img style="max-height:150px" src="https://res.cloudinary.com/dstqvlt8d/image/upload/v1705860757/ASSS-icon/Google-Maps-PNG-HD-Image_1_.png_evofxw.png" alt="" />
 							</div>
 							<div class="content">
 								<h3 class="h4">Locations</h3>
-								<p class="max-width-200">
-									Convenient locations when and where you need them.
+								<p style="max-height: 150px;">
+									<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.456141986795!2d106.68765417451716!3d10.77633365919653!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752f3ae35e3725%3A0x20c5174a47f97be3!2zVHLGsOG7nW5nIMSQ4bqhaSBo4buNYyBN4bufIFRQLkhDTSAtIEPGoSBz4bufIDE!5e0!3m2!1svi!2s!4v1705860175907!5m2!1svi!2s" width="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+								</p>
+							</div>
+						</a>
+					</div>
+					<div class="col-md-4 mb-20">
+						<a href="https://github.com/TrinhBaoDuy/Accommodation_Search_Support_System" class="card-box d-block mx-auto pd-20 text-secondary">
+							<div class="img pb-30">
+								<img style="max-height: 150px;" src="https://res.cloudinary.com/dstqvlt8d/image/upload/v1705861468/ASSS-icon/GitHub-Emblem_n9fxud.png" alt="" />
+							</div>
+							<div class="content">
+								<h3 class="h4">Git Infomatinon</h3>
+								<p style="max-height: 150px;">
+									<div class="mb-20">Accommodation Search Support System</div>
+									<div class="mb-20">trinhbaoduy.26012019@gmail.com</div>
+									<div class="mb-20">@2024 Copyright</div>
 								</p>
 							</div>
 						</a>
