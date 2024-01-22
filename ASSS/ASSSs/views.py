@@ -258,6 +258,18 @@ class PostViewSet(viewsets.ViewSet, generics.ListAPIView , generics.RetrieveAPIV
         serializer = serializers.PostSerializerShow(filtered_queryset, many=True)
         return Response(serializer.data)
 
+    @action(methods=['get'], url_name='check_like', detail=True)
+    def check_like(self, request,pk):
+        user = request.user
+        post = Post.objects.get(pk=pk)
+        if not user or not post:
+            return Response("Not Found", status=status.HTTP_404_NOT_FOUND)
+        check = Like.objects.get(user=user, post=post, status=True)
+        if check:
+            return Response(True, status=status.HTTP_200_OK)
+
+        return Response(False, status=status.HTTP_204_NO_CONTENT)
+
     @action(methods=['get'], url_name='count_like', detail=True)
     def count_like(self, request, pk):
         try:
@@ -429,7 +441,7 @@ class PostViewSet(viewsets.ViewSet, generics.ListAPIView , generics.RetrieveAPIV
 
 
 class CommentViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIView, generics.DestroyAPIView):
-    queryset = Comment.objects.filter(active=True).all()
+    queryset = Comment.objects.filter(active=True).order_by('-created_date').all()
     serializer_class = serializers.CommentSerializer
     pagination_class = paginators.ASSSPaginator
     parser_classes = [parsers.MultiPartParser]
@@ -1680,7 +1692,24 @@ class PushPostViewSet(viewsets.ViewSet):
         list_host = User.objects.filter(role_id=2).all()
         if user:
             if user not in list_host:
-                return Response("Just Host can push Post", status=status.HTTP_403_FORBIDDEN)
+                post_data = {
+                    'topic': request.data.get("topic"),
+                    'describe': request.data.get("describe"),
+                    'postingdate': datetime.datetime.now(),
+                    'expirationdate': datetime.datetime.now() + datetime.timedelta(days=365),
+                    # 'postingdate': '2024-01-10',
+                    # 'expirationdate': '2024-01-20',
+                    'status': 1,
+                    'house': None,
+                    'user': User.objects.get(pk=user.id),
+                    'discount': None,
+                    'postingprice': None,
+                }
+                post = Post.objects.create(**post_data)
+                post.save()
+                print(post)
+                # breakpoint()
+                return Response(serializers.PostSerializerShow(post).data, status=status.HTTP_200_OK)
 
             address = request.data.get("address")
             acreage = request.data.get("acreage")
