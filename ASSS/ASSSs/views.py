@@ -13,6 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import EmailMultiAlternatives, EmailMessage
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from reportlab.lib.utils import ImageReader
 from rest_framework.decorators import action, permission_classes
 from requests_oauthlib import OAuth2Session
 from ASSS import settings
@@ -29,7 +30,9 @@ from django_filters.rest_framework import DjangoFilterBackend
 import uuid
 from django.urls import reverse
 from django.http import JsonResponse
-
+from reportlab.pdfgen import canvas
+from django.http import FileResponse
+from io import BytesIO
 
 #vnpay
 # def payment(request):
@@ -108,6 +111,36 @@ class SendMailViewSet(viewsets.ViewSet):
         else:
             return Response({'message': 'Failed to send email.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+#pdf
+class PDFViewSet(viewsets.ViewSet):
+    @action(methods=['get'], url_name='generate_pdf', detail=False)
+    def generate_pdf(self, request):
+        booking_id = request.query_params.get('booking_id')
+        response = FileResponse(self.generate_pdf_file(booking_id=booking_id),
+                                as_attachment=True,
+                                filename='bill.pdf')
+        return response
+
+    def generate_pdf_file(self, booking_id):
+        buffer = BytesIO()
+        p = canvas.Canvas(buffer)
+
+        # Create a PDF document
+        book = Booking.objects.get(pk=booking_id)
+        images = Image.objects.filter(house=book.post.house).all()
+        p.drawString(100, 750, "Booking Bill")
+
+        y = 700
+        p.drawString(100, y, f"House Address: {book.post.house.address}")
+        p.drawString(100, y - 20, f"User: {book.user.first_name} {book.user.last_name}")
+        p.drawString(100, y - 40, f"Price: {book.post.house.price}")
+        y -= 60
+        p.showPage()
+        p.save()
+
+        buffer.seek(0)
+        return buffer
 
 # paypal
 class PayPalViewSet(viewsets.ViewSet):
