@@ -142,6 +142,7 @@ class PDFViewSet(viewsets.ViewSet):
         buffer.seek(0)
         return buffer
 
+
 # paypal
 class PayPalViewSet(viewsets.ViewSet):
 
@@ -1740,63 +1741,61 @@ class PushPostViewSet(viewsets.ViewSet):
                 }
                 post = Post.objects.create(**post_data)
                 post.save()
-                print(post)
-                # breakpoint()
-                return Response(serializers.PostSerializerShow(post).data, status=status.HTTP_200_OK)
-
-            address = request.data.get("address")
-            acreage = request.data.get("acreage")
-            price = request.data.get("price")
-            quantity = request.data.get("quantity")
-            if not address or not acreage or not quantity or not price:
-                return Response("Info house not found", status=status.HTTP_404_NOT_FOUND)
-
-            house = House.objects.create(address=address, acreage=acreage, price=price, quantity=quantity)
-            house.save()
-
-            if house:
-                print(house)
-                images = request.FILES.getlist('images')
-                id_image = []
-                if not images:
-                    house.delete_permanently()
-                    return Response("Image not found", status=status.HTTP_404_NOT_FOUND)
-                for image in images:
-                    img = Image.objects.create(house=house, imageURL=image)
-                    img.save()
-                    id_image.append(img.id)
-                post_data = {
-                    'topic': request.data.get("topic"),
-                    'describe': request.data.get("describe"),
-                    'postingdate': request.data.get("postingdate"),
-                    'expirationdate': request.data.get("expirationdate"),
-                    # 'postingdate': '2024-01-10',
-                    # 'expirationdate': '2024-01-20',
-                    'status': 0,
-                    'house': House.objects.get(pk=house.id),
-                    'user': User.objects.get(pk=user.id),
-                    'discount': Discount.objects.get(pk=request.data.get("discount")),
-                    'postingprice': request.data.get("postingprice"),
-                }
-                check = True
-                for key, value in post_data.items():
-                    if value is None:
-                        check = False
-                        # breakpoint()
-                        return Response(f"Missing value for field {key}", status=status.HTTP_400_BAD_REQUEST)
-                # breakpoint()
-                if check.__eq__(False):
-                    house.delete_permanently()
-                    for pk in id_image:
-                        Image.objects.get(pk=pk).delete_permanently()
-                # breakpoint()
-                post = Post.objects.create(**post_data)
-                post.save()
-                print(post)
-                # breakpoint()
                 return Response(serializers.PostSerializerShow(post).data, status=status.HTTP_200_OK)
             else:
-                return Response("Info house not found", status=status.HTTP_404_NOT_FOUND)
+                address = request.data.get("address")
+                acreage = request.data.get("acreage")
+                price = request.data.get("price")
+                quantity = request.data.get("quantity")
+                if not address or not acreage or not quantity or not price:
+                    return Response("Info house not found", status=status.HTTP_404_NOT_FOUND)
+
+                house = House.objects.create(address=address, acreage=acreage, price=price, quantity=quantity)
+                house.save()
+
+                if house:
+                    print(house)
+                    images = request.FILES.getlist('images')
+                    id_image = []
+                    if not images:
+                        house.delete_permanently()
+                        return Response("Image not found", status=status.HTTP_404_NOT_FOUND)
+                    for image in images:
+                        img = Image.objects.create(house=house, imageURL=image)
+                        img.save()
+                        id_image.append(img.id)
+                    post_data = {
+                        'topic': request.data.get("topic"),
+                        'describe': request.data.get("describe"),
+                        'postingdate': request.data.get("postingdate"),
+                        'expirationdate': request.data.get("expirationdate"),
+                        # 'postingdate': '2024-01-10',
+                        # 'expirationdate': '2024-01-20',
+                        'status': 0,
+                        'house': House.objects.get(pk=house.id),
+                        'user': User.objects.get(pk=user.id),
+                        'discount': Discount.objects.get(pk=request.data.get("discount")),
+                        'postingprice': request.data.get("postingprice"),
+                    }
+                    check = True
+                    for key, value in post_data.items():
+                        if value is None:
+                            check = False
+                            # breakpoint()
+                            return Response(f"Missing value for field {key}", status=status.HTTP_400_BAD_REQUEST)
+                    # breakpoint()
+                    if check.__eq__(False):
+                        house.delete_permanently()
+                        for pk in id_image:
+                            Image.objects.get(pk=pk).delete_permanently()
+                    # breakpoint()
+                    post = Post.objects.create(**post_data)
+                    post.save()
+                    print(post)
+                    # breakpoint()
+                    return Response(serializers.PostSerializerShow(post).data, status=status.HTTP_200_OK)
+                else:
+                    return Response("Info house not found", status=status.HTTP_404_NOT_FOUND)
         else:
             return Response("User not found", status=status.HTTP_404_NOT_FOUND)
 

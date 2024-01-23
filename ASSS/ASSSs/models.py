@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser, User
 from django.db import models
+from django.db.models import SET_NULL
 from django.utils import timezone
 from cloudinary.models import CloudinaryField
 
@@ -84,10 +85,10 @@ class Post(BaseModel):
     postingdate = models.DateTimeField(null=True)
     expirationdate = models.DateTimeField(null=True)
     status = models.IntegerField()
-    house = models.ForeignKey(House, on_delete=models.CASCADE, related_query_name="posts")
+    house = models.ForeignKey(House, on_delete=models.CASCADE, related_query_name="posts", null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_query_name="posts")
-    discount = models.ForeignKey(Discount, on_delete=models.RESTRICT, related_query_name="posts")
-    postingprice = models.IntegerField(null=False)
+    discount = models.ForeignKey(Discount, on_delete=SET_NULL, related_query_name="posts", null=True)
+    postingprice = models.IntegerField(null=True)
 
     def __str__(self):
         return f"ID: {self.id}, Topic: {self.topic}, User: {self.user}, House: {self.house}, Posting Date: {self.postingdate}, Expiration Date: {self.expirationdate}, Status: {self.status}, Discount: {self.discount}, Posting Price: {self.postingprice}"
