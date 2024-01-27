@@ -1,6 +1,7 @@
 from django.urls import path, include
 from rest_framework import routers
 from ASSSs import views
+from ASSSs import paypal
 from django.urls import path
 
 router = routers.DefaultRouter()
@@ -28,4 +29,6 @@ router.register('pdf', views.PDFViewSet, basename='pdf')
 urlpatterns = [
     path('', include(router.urls)),
     path('complete/', views.PayPalViewSet.paymentComplete, name="complete"),
+    path('create_payment/', paypal.create_payment),
+    path('capture_payment/', paypal.capture_payment),
 ]
