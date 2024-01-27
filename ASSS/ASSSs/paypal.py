@@ -39,7 +39,7 @@ def get_access_token():
 
 
 @api_view(['POST'])
-def create_payment1(request):
+def create_payment(request):
     your_paypal_access_token = get_access_token()
     data = request.data
     amount = data.get('amount')
