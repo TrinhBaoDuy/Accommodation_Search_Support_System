@@ -98,6 +98,8 @@ def capture_payment(request):
 
         # Thanh toán thành công, thực hiện các thao tác cần thiết
         # ...
-        return render(request, "payment/success.html")
+        # return render(request, "payment/success.html")
+        return True
     else:
-        return render(request, "payment/error.html")
+        # return render(request, "payment/error.html")
+        return False
