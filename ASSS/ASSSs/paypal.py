@@ -98,8 +98,8 @@ def capture_payment(request):
 
         # Thanh toán thành công, thực hiện các thao tác cần thiết
         # ...
-        # return render(request, "payment/success.html")
-        return True
+        return render(request, "paypal/success.html")
+        # return Response(True, status=status.HTTP_200_OK)
     else:
-        # return render(request, "payment/error.html")
-        return False
+        return render(request, "paypal/error.html")
+        # return Response(False, status=status.HTTP_402_PAYMENT_REQUIRED)
