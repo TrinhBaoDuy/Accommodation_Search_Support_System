@@ -1138,7 +1138,7 @@ class UserViewSet(viewsets.ViewSet):
         if not user:
             return Response(status=status.HTTP_404_NOT_FOUND)
         posts = user.post_set.all()
-        return Response(serializers.CommentSerializer(posts, many=True, context={'request': request}).data, status=status.HTTP_200_OK)
+        return Response(serializers.PostSerializerShow(posts, many=True, context={'request': request}).data, status=status.HTTP_200_OK)
 
 
 class FollowViewSet(viewsets.ViewSet, generics.ListAPIView):
@@ -1151,7 +1151,7 @@ class FollowViewSet(viewsets.ViewSet, generics.ListAPIView):
     @action(methods=['get'], detail=True, url_path='check')
     def check(self, request, pk):
         current_user = request.user
-        user = self.get_object()
+        user = User.objects.get(pk=pk)
         check = self.queryset.filter(followeduser=user, follower=current_user)
         if check.exists():
             return Response({'data': True})
